@@ -1,0 +1,27 @@
+[package]
+name = "x12-worker"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "VGI worker that parses ANSI ASC X12 EDI and UN/EDIFACT interchanges into queryable segment / element / envelope / shaped rows for DuckDB over Apache Arrow. No-egress local parse; public X12 syntax only."
+
+[[bin]]
+name = "x12-worker"
+path = "src/main.rs"
+
+[dependencies]
+vgi.workspace = true
+vgi-rpc.workspace = true
+arrow-array.workspace = true
+arrow-buffer.workspace = true
+arrow-schema.workspace = true
+x12-core.workspace = true
+log = "0.4"
+env_logger = "0.11"
+# Local path-glob expansion for the path/glob hot path. The worker parses files
+# the host already exposes; there is no network/object-store surface (a feature
+# for the PHI/PII data-residency story, not an omission).
+glob = "0.3"

@@ -1,0 +1,58 @@
+# name: test/sql/files.test
+# group: [vgi_x12]
+#
+# Path / glob mode (the streaming hot path) over the committed synthetic fixtures
+# in data/. VGI_X12_DATA is exported by ci/run-integration.sh to the repo's data
+# directory so these resolve regardless of the runner's working directory.
+
+require-env VGI_X12_WORKER
+
+require-env VGI_X12_DATA
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET search_path = 'x12.main';
+
+# read_835 from a real file path; source_path is populated (not NULL).
+query TT
+SELECT clp_claim_id, source_path IS NOT NULL FROM read_835('${VGI_X12_DATA}/era_835.835') WHERE cas_reason_code = '45';
+----
+PCN1001	true
+
+# Glob across all .837 + .835 files: the envelope view sees both transaction types.
+query TI
+SELECT transaction_type, count(*) FROM envelope('${VGI_X12_DATA}/*.83*') GROUP BY transaction_type ORDER BY transaction_type;
+----
+835	1
+837	1
+
+# Non-canonical delimiters (element '|', component '>', segment newline, 4010 'U'
+# placeholder) are sniffed per interchange — CLM05 composite is surfaced raw.
+query TT
+SELECT clm_id, clm_place_of_service FROM read_837('${VGI_X12_DATA}/pipe_delims.edi');
+----
+ACCT9	11>B>1
+
+# Multi-GS / multi-ST interchange: two 837 + one 835 across two groups.
+query TI
+SELECT transaction_type, count(*) FROM envelope('${VGI_X12_DATA}/multi_group.edi') GROUP BY transaction_type ORDER BY transaction_type;
+----
+835	1
+837	2
+
+# EDIFACT file path mode.
+query T
+SELECT transaction_type FROM edifact_envelope('${VGI_X12_DATA}/orders_edifact.edi');
+----
+ORDERS
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;

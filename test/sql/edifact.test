@@ -1,0 +1,41 @@
+# name: test/sql/edifact.test
+# group: [vgi_x12]
+#
+# UN/EDIFACT: edifact_segments + edifact_envelope. EDIFACT uses the apostrophe as
+# its segment terminator, so the inline content doubles it ('') for SQL.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET search_path = 'x12.main';
+
+# edifact_envelope: one row per UNH message, with the control reference + type.
+query TTTI
+SELECT interchange_ctrl, transaction_ctrl, transaction_type, segment_count
+FROM edifact_envelope('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF0001''UNH+MSG001+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''UNT+4+MSG001''UNZ+1+REF0001''');
+----
+REF0001	MSG001	ORDERS	4
+
+# edifact_segments: the BGM segment's first element (PO number).
+query TT
+SELECT segment_id, value FROM edifact_segments('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF0001''UNH+MSG001+ORDERS:D:96A:UN''BGM+220+PO12345+9''UNT+2+MSG001''UNZ+1+REF0001''') WHERE segment_id = 'BGM' AND element_index = 2;
+----
+BGM	PO12345
+
+# Release-character un-escape: '?+' is a literal '+' inside FTX data, not a separator.
+query T
+SELECT value FROM edifact_segments('UNB+UNOA:1+S+R+240101:1200+REF''UNH+M1+ORDERS:D:96A:UN''FTX+AAA+++Price is 5?+ tax''UNT+3+M1''UNZ+1+REF''') WHERE segment_id = 'FTX' AND element_index = 4;
+----
+Price is 5+ tax
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;

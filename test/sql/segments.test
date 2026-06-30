@@ -1,0 +1,61 @@
+# name: test/sql/segments.test
+# group: [vgi_x12]
+#
+# Generic explode: x12.segments and x12.segments_elements over inline content.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET search_path = 'x12.main';
+
+# segments: ST..SE inclusive (ST,BPR,CLP,SE = 4 segments).
+query I
+SELECT count(*) FROM segments('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~CLP*PCN1*1*500*400*100*MC*CCN1*11~SE*4*0001~GE*1*1~IEA*1*1~');
+----
+4
+
+# The CLP segment's element list, picked by segment_id.
+query TT
+SELECT segment_id, elements[1] FROM segments('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~CLP*PCN1*1*500*400*100*MC*CCN1*11~SE*4*0001~GE*1*1~IEA*1*1~') WHERE segment_id = 'CLP';
+----
+CLP	PCN1
+
+# segments_elements: CLP04 (total paid) is element_index 4.
+query IT
+SELECT element_index, value FROM segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~CLP*PCN1*1*500*400*100*MC*CCN1*11~SE*2*0001~GE*1*1~IEA*1*1~') WHERE segment_id = 'CLP' AND element_index = 4;
+----
+4	400
+
+# Composite split: SVC01 'HC:99213:25' yields component_index rows.
+query IT
+SELECT component_index, value FROM segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~SVC*HC:99213:25*200*160**1~SE*2*0001~GE*1*1~IEA*1*1~') WHERE segment_id = 'SVC' AND element_index = 1 ORDER BY component_index;
+----
+1	HC
+2	99213
+3	25
+
+# Repetition split: an active repetition separator produces repetition_index rows.
+query IT
+SELECT repetition_index, value FROM segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~REF*XX*A^B^C~SE*2*0001~GE*1*1~IEA*1*1~') WHERE segment_id = 'REF' AND element_index = 2 ORDER BY repetition_index;
+----
+1	A
+2	B
+3	C
+
+# Envelope keys are carried down onto every element row.
+query T
+SELECT DISTINCT transaction_type FROM segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010~ST*835*0001~CLP*PCN1*1*500~SE*2*0001~GE*1*1~IEA*1*1~');
+----
+835
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;

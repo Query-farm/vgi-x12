@@ -1,0 +1,17 @@
+[package]
+name = "x12-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Pure-compute ANSI ASC X12 / UN-EDIFACT EDI syntactic parser (delimiter sniffing, segment/element/component explode, ISA/GS/ST envelope walk, positional shaped extractors) for the x12 VGI worker. Public syntax only — no Arrow/VGI deps, no copyrighted TR3 content."
+
+[dependencies]
+# Externalized scan-state (de)serialization for the worker's cursor, and the
+# small JSON helpers. Pure compute; no I/O. Kept dependency-light on purpose.
+serde = { version = "1.0", features = ["derive"] }
+
+[lints.rust]
+unsafe_code = "forbid"

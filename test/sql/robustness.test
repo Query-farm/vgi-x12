@@ -1,0 +1,57 @@
+# name: test/sql/robustness.test
+# group: [vgi_x12]
+#
+# Malformed / truncated EDI must NEVER abort the query (per-row error capture):
+# it degrades to fewer rows / NULL validity flags, never an error or a crash.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET search_path = 'x12.main';
+
+# A truncated interchange (missing SE/GE/IEA) still parses its body — no error.
+query T
+SELECT clm_id FROM read_837('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000600*0*P*:~GS*HC*S*R*20240101*1200*1*X*005010X222A1~ST*837*0001~NM1*85*2*CLINIC*****XX*1~CLM*ACCTTRUNC*999~');
+----
+ACCTTRUNC
+
+# Forced-content junk that is not an X12 interchange → zero rows, never an error.
+query I
+SELECT count(*) FROM segments('this is definitely not an EDI interchange', mode => 'content');
+----
+0
+
+# Empty forced content → zero rows, no error.
+query I
+SELECT count(*) FROM segments_elements('', mode => 'content');
+----
+0
+
+# A broken/truncated ISA header (auto-detected as content) → zero rows, no error.
+query I
+SELECT count(*) FROM envelope('ISA broken too short header');
+----
+0
+
+# A non-existent file PATH is a legitimate error (not silently empty).
+statement error
+SELECT count(*) FROM segments('/no/such/file/here.edi');
+----
+
+# A shaped view over non-matching content → zero rows (the 835 view sees an 837).
+query I
+SELECT count(*) FROM read_835('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HC*S*R*20240101*1200*1*X*005010~ST*837*0001~CLM*A*1~SE*2*0001~GE*1*1~IEA*1*1~');
+----
+0
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;

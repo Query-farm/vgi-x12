@@ -1,0 +1,54 @@
+# name: test/sql/envelope.test
+# group: [vgi_x12]
+#
+# x12.envelope(input) — ISA/GS/ST metadata + structural validity flags. The
+# single overloaded input arg auto-detects inline content by its ISA prefix.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+# One ST → one envelope row, with the captured control numbers and types.
+query TTTTI
+SELECT interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, segment_count
+FROM x12.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000123*0*P*:~GS*HP*PAYERAPP*PROVAPP*20240115*1200*1*X*005010X221A1~ST*835*0001~BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~SVC*HC:99213*200*160**1~DTM*232*20240110~CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~SE*11*0001~GE*1*1~IEA*1*000000123~');
+----
+000000123	1	0001	835	11
+
+# Sender / receiver / usage indicator from the ISA.
+query TTT
+SELECT sender_id, receiver_id, usage_indicator
+FROM x12.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000123*0*P*:~GS*HP*PAYERAPP*PROVAPP*20240115*1200*1*X*005010X221A1~ST*835*0001~SE*2*0001~GE*1*1~IEA*1*000000123~');
+----
+SENDER	RECEIVER	P
+
+# Structural validity flags: a well-formed interchange is all-true.
+query TTT
+SELECT se_count_ok, ge_count_ok, iea_count_ok
+FROM x12.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000123*0*P*:~GS*HP*PAYERAPP*PROVAPP*20240115*1200*1*X*005010X221A1~ST*835*0001~BPR*I*1500*C*ACH~SE*3*0001~GE*1*1~IEA*1*000000123~');
+----
+true	true	true
+
+# A wrong SE01 count flags se_count_ok = false but never errors.
+query T
+SELECT se_count_ok
+FROM x12.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000123*0*P*:~GS*HP*PAYERAPP*PROVAPP*20240115*1200*1*X*005010X221A1~ST*835*0001~BPR*I*1500*C*ACH~SE*99*0001~GE*1*1~IEA*1*000000123~');
+----
+false
+
+# A truncated interchange (no IEA) → iea_count_ok is NULL, not an error.
+query T
+SELECT iea_count_ok IS NULL
+FROM x12.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000600*0*P*:~GS*HC*S*R*20240101*1200*1*X*005010X222A1~ST*837*0001~CLM*X*1~');
+----
+true
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;

@@ -1,0 +1,61 @@
+# name: test/sql/scalars.test
+# group: [vgi_x12]
+#
+# Scalar functions: x12_version(), delimiters(content), transaction_type(content).
+# All run on inline content — no external file needed.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET search_path = 'x12.main';
+
+# Version is a non-empty semver string.
+query T
+SELECT regexp_matches(x12_version(), '^[0-9]+\.[0-9]+\.[0-9]+$');
+----
+true
+
+# Delimiter sniff from a canonical ISA header → STRUCT fields.
+query TTTT
+SELECT (delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element,
+       (delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).segment,
+       (delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).component,
+       (delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).repetition;
+----
+*	~	:	^
+
+# Unrecognized content → NULL struct (never an error).
+query T
+SELECT delimiters('not an interchange') IS NULL;
+----
+true
+
+# transaction_type detects the first ST01.
+query T
+SELECT transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~');
+----
+835
+
+# transaction_type detects the EDIFACT message type (UNH02-1).
+query T
+SELECT transaction_type('UNB+UNOA:1+S+R+240101:1200+REF''UNH+M1+ORDERS:D:96A:UN''UNT+1+M1''UNZ+1+REF''');
+----
+ORDERS
+
+# Unrecognized content → NULL.
+query T
+SELECT transaction_type('garbage') IS NULL;
+----
+true
+
+statement ok
+USE memory;
+
+statement ok
+DETACH x12;
