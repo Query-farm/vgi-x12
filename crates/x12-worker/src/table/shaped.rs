@@ -76,8 +76,22 @@ impl TableFunction for Shaped {
             "vgi.result_columns_md".into(),
             crate::meta::result_columns_md(&self.output_schema()),
         ));
+        let examples = match example_for(st) {
+            Some((select, body)) => vec![crate::meta::table_example(
+                self.def.fn_name,
+                select,
+                st,
+                body,
+                &format!(
+                    "Project an inline {st} interchange through the {} shaped view.",
+                    self.def.fn_name
+                ),
+            )],
+            None => Vec::new(),
+        };
         FunctionMetadata {
             description: format!("Shaped positional view of X12 transaction set {st}"),
+            examples,
             tags,
             ..Default::default()
         }
@@ -132,4 +146,64 @@ impl TableFunction for Shaped {
             rows,
         )))
     }
+}
+
+/// A runnable example for the shaped view of transaction set `st01`: the
+/// `(select, body)` pair feeds [`crate::meta::table_example`], which wraps `body`
+/// in a valid interchange envelope. The bodies mirror the committed `data/`
+/// fixtures and the `x12-core` extractor unit tests, so each is guaranteed to
+/// produce rows when the linter executes it inline (no file needed).
+fn example_for(st01: &str) -> Option<(&'static str, &'static str)> {
+    let pair = match st01 {
+        "835" => (
+            "clp_claim_id, clp_total_paid, payer_name",
+            "BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~\
+             NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~\
+             NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~\
+             CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~\
+             SVC*HC:99213*200*160**1~DTM*232*20240110~\
+             CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~",
+        ),
+        "837" => (
+            "billing_provider_npi, subscriber_id, clm_place_of_service",
+            "BHT*0019*00*REF01*20240101*1200*CH~\
+             NM1*85*2*BILLING CLINIC*****XX*1122334455~\
+             NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~\
+             NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~\
+             HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~",
+        ),
+        "270" => (
+            "hl_id, hl_level_code, entity_name",
+            "HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~\
+             HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~\
+             HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~\
+             TRN*1*TRACE70*9999999999~EQ*30~",
+        ),
+        "271" => (
+            "hl_id, entity_name, eb_plan_description",
+            "HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~\
+             HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~\
+             HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~\
+             TRN*2*TRACE55*9999999999~EB*1*IND*30**GOLD PPO~\
+             EB*B*IND*30****27.5~DTP*291*D8*20240101~",
+        ),
+        "850" => (
+            "po1_line_number, po1_product_id, po1_quantity",
+            "BEG*00*SA*PO9988**20240101~N1*ST*ACME WAREHOUSE*92*DC07~\
+             PER*BD*JANE BUYER*TE*5551234~PO1*1*10*EA*4.50**VP*WIDGET-A~\
+             PO1*2*5*EA*9.99**VP*WIDGET-B~",
+        ),
+        "997" => (
+            "ak2_transaction_control, ak5_status, ak3_segment_id",
+            "AK1*HC*1~AK2*837*0001~AK3*CLM*22**8~AK4*1*1028*1~AK5*E~\
+             AK2*837*0002~AK5*A~AK9*P*2*2*1~",
+        ),
+        "999" => (
+            "ak2_transaction_control, ik3_segment_id, ik5_status",
+            "AK1*HC*1~AK2*837*0001~IK3*NM1*8**8~IK4*2*1037*7~IK5*R~\
+             AK9*R*1*1*0~",
+        ),
+        _ => return None,
+    };
+    Some(pair)
 }

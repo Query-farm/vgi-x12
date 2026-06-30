@@ -101,6 +101,14 @@ impl TableFunction for SegmentsElements {
             description:
                 "Explode an X12 interchange into one row per element (component/repetition split)"
                     .into(),
+            examples: vec![crate::meta::table_example(
+                "segments_elements",
+                "segment_id, element_index, component_index, value",
+                "837",
+                "CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~",
+                "Explode an inline 837 CLM segment into element/component rows (CLM05 is the \
+                 composite '11:B:1').",
+            )],
             tags,
             ..Default::default()
         }

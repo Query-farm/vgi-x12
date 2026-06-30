@@ -67,6 +67,14 @@ impl TableFunction for Segments {
         FunctionMetadata {
             description: "Explode an X12 interchange into one row per segment (elements as a LIST)"
                 .into(),
+            examples: vec![crate::meta::table_example(
+                "segments",
+                "segment_index, segment_id, elements",
+                "837",
+                "BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~\
+                 CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~",
+                "Explode an inline 837 claim interchange into one row per segment.",
+            )],
             tags,
             ..Default::default()
         }

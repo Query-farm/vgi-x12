@@ -188,6 +188,15 @@ impl TableFunction for Envelope {
             description:
                 "One row per ST transaction: ISA/GS/ST envelope metadata + structural validity flags"
                     .into(),
+            examples: vec![crate::meta::table_example(
+                "envelope",
+                "interchange_ctrl, transaction_type, segment_count, se_count_ok",
+                "837",
+                "BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~\
+                 SV1*HC:99213*200*UN*1~",
+                "Summarize an inline 837 interchange as one envelope row with structural \
+                 validity flags.",
+            )],
             tags,
             ..Default::default()
         }

@@ -93,3 +93,68 @@ pub fn object_tags(
         ("vgi.keywords".to_string(), keywords_json(keywords)),
     ]
 }
+
+/// The canonical fixed-width X12 ISA header (interchange control `000000001`)
+/// used to build inline, runnable examples. It declares the standard
+/// `*` (element) / `~` (segment) / `:` (component) / `^` (repetition) delimiters
+/// the worker sniffs back out, and MUST stay on a single source line so its
+/// fixed-width spacing is preserved byte-for-byte.
+const EXAMPLE_ISA: &str = "ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~";
+
+/// Wrap a transaction-set `body` (its segments, each terminated by `~`) in a
+/// minimal, valid X12 `ISA`/`GS`/`ST`…`SE`/`GE`/`IEA` envelope, yielding one
+/// complete interchange string. Because the worker's table functions
+/// auto-detect inline content by its `ISA` prefix, the result is parsed directly
+/// — no file needed — so it drives a self-contained, runnable example.
+pub fn example_interchange(st01: &str, body: &str) -> String {
+    // SE01 is the count of segments in the set, inclusive of ST and SE. `body`
+    // holds one `~`-terminated segment per terminator, so the count is the number
+    // of `~` in `body` plus the ST and SE segments themselves. Computing it keeps
+    // the example's `se_count_ok` structural flag TRUE.
+    let se_count = body.matches('~').count() + 2;
+    format!(
+        "{EXAMPLE_ISA}GS*XX*SEND*RECV*20240101*1200*1*X*005010~\
+         ST*{st01}*0001~{body}SE*{se_count}*0001~GE*1*1~IEA*1*000000001~"
+    )
+}
+
+/// Build one runnable [`vgi::FunctionExample`] for a table function: a
+/// `SELECT <select> FROM x12.main.<fn_name>('<inline interchange>')` over the
+/// `st01`/`body` wrapped in the standard envelope. The interchange contains no
+/// single quotes, so it embeds directly in the SQL string literal.
+pub fn table_example(
+    fn_name: &str,
+    select: &str,
+    st01: &str,
+    body: &str,
+    description: &str,
+) -> vgi::FunctionExample {
+    let interchange = example_interchange(st01, body);
+    vgi::FunctionExample {
+        sql: format!("SELECT {select} FROM x12.main.{fn_name}('{interchange}')"),
+        description: description.to_string(),
+        expected_output: None,
+    }
+}
+
+/// Build one runnable [`vgi::FunctionExample`] for an EDIFACT table function. EDIFACT
+/// terminates segments with `'`, which must be doubled to embed in a SQL string
+/// literal; `interchange` is the raw UNA/UNB… text and is escaped here.
+pub fn edifact_example(
+    fn_name: &str,
+    select: &str,
+    interchange: &str,
+    description: &str,
+) -> vgi::FunctionExample {
+    let escaped = interchange.replace('\'', "''");
+    vgi::FunctionExample {
+        sql: format!("SELECT {select} FROM x12.main.{fn_name}('{escaped}')"),
+        description: description.to_string(),
+        expected_output: None,
+    }
+}
+
+/// A small, valid UN/EDIFACT ORDERS interchange (UNA service-string advice +
+/// UNB…UNZ) used for the EDIFACT table-function examples. Segment terminator is
+/// `'`; the release character is `?`.
+pub const EXAMPLE_EDIFACT: &str = "UNA:+.? 'UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1'UNH+MSG1+ORDERS:D:96A:UN'BGM+220+PO12345+9'DTM+137:20240101:102'NAD+BY+++ACME CORP'UNT+4+MSG1'UNZ+1+REF1'";

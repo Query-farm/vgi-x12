@@ -1,16 +1,17 @@
 # vgi-lint-check configuration for vgi-x12.
 #
-# The x12 worker is a pure local parser: most of its surface (segments,
-# segments_elements, envelope, the shaped read_* views, edifact_*) is a TABLE
-# function that scans an external `.edi`/`.x12` file, so an example query returns
-# zero rows in a backend-free lint sandbox (VGI902). The argument-free /
-# inline-content helpers that DO run without a file — `x12_version()`,
-# `delimiters(content)`, `transaction_type(content)` — ship guaranteed-runnable
-# executable examples and carry the gate.
+# The x12 worker is a pure local parser. Every function ships a guaranteed-runnable
+# example: the scalars (`x12_version()`, `delimiters(content)`,
+# `transaction_type(content)`) run over inline content, and every TABLE function
+# (segments, segments_elements, envelope, the shaped read_* views, edifact_*)
+# carries an example over an INLINE interchange string — these auto-detect inline
+# content by its ISA/UNA/UNB prefix and parse it directly, so the example produces
+# rows with no external file (no VGI902). The file-path/glob hot path is exercised
+# separately against the committed `data/` fixtures by the repo's SQLLogic E2E
+# (make test-sql).
 #
 # All static metadata rules (titles, per-arg docs, keywords, source_url, tags)
-# remain enabled and gate at `info`. The full example suite is exercised against
-# real committed fixtures by the repo's own SQLLogic E2E (make test-sql).
+# remain enabled and the whole suite gates at `info`.
 [tool.vgi-lint-check]
 select = ["ALL"]
 ignore = []
