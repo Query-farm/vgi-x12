@@ -59,6 +59,7 @@ impl TableFunction for Segments {
              envelope keys carried down. Reads a file path/glob or inline content.",
             "x12, edi, segments, explode, segment, parse edi, 837, 835, healthcare edi, \
              elements, isa, gs, st, table function",
+            "Segment & element explode",
         );
         tags.push((
             "vgi.result_columns_md".into(),

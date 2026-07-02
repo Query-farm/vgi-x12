@@ -92,6 +92,7 @@ impl TableFunction for SegmentsElements {
              envelope keys carried down. The `input` is a file path/glob or inline content.",
             "x12, edi, elements, explode, element, component, repetition, segments_elements, \
              parse edi, 837, 835, claim, healthcare edi, table function",
+            "Segment & element explode",
         );
         tags.push((
             "vgi.result_columns_md".into(),

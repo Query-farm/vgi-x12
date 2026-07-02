@@ -179,6 +179,7 @@ impl TableFunction for Envelope {
              count + control-match validity flags. Reads a file path/glob or inline content.",
             "x12, edi, envelope, isa, gs, st, routing, triage, control number, validation, \
              se count, ge count, iea, sender, receiver, usage indicator, table function",
+            "Envelope & structure",
         );
         tags.push((
             "vgi.result_columns_md".into(),

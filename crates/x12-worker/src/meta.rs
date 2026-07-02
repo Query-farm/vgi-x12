@@ -20,10 +20,25 @@ pub fn keywords_json(keywords: &str) -> String {
     format!("[{}]", items.join(","))
 }
 
+/// One analyst task in the `vgi.agent_test_tasks` suite: a `name`, the `prompt`
+/// shown to the simulated analyst, the canonical `reference_sql`, and the two
+/// result-comparison relaxations the grader honors — `unordered` (row order is
+/// insignificant) and `ignore_column_names` (compare VALUES only, not column
+/// labels). Keeping these explicit per task makes each reference deterministic
+/// under the linter's strict result compare.
+pub struct AgentTask {
+    pub name: &'static str,
+    pub prompt: &'static str,
+    pub reference_sql: &'static str,
+    pub unordered: bool,
+    pub ignore_column_names: bool,
+}
+
 /// Build the `vgi.agent_test_tasks` JSON value: a fixed suite of analyst tasks
-/// that `vgi-lint simulate` runs. Each `(name, prompt, reference_sql)` triple
-/// becomes a task object.
-pub fn agent_test_tasks_json(tasks: &[(&str, &str, &str)]) -> String {
+/// that `vgi-lint simulate` runs. Each [`AgentTask`] becomes a task object,
+/// emitting the `unordered` / `ignore_column_names` grading flags so a
+/// single-answer prompt grades deterministically.
+pub fn agent_test_tasks_json(tasks: &[AgentTask]) -> String {
     fn esc(s: &str) -> String {
         s.replace('\\', "\\\\")
             .replace('"', "\\\"")
@@ -31,12 +46,15 @@ pub fn agent_test_tasks_json(tasks: &[(&str, &str, &str)]) -> String {
     }
     let items: Vec<String> = tasks
         .iter()
-        .map(|(name, prompt, reference_sql)| {
+        .map(|t| {
             format!(
-                "{{\"name\":\"{}\",\"prompt\":\"{}\",\"reference_sql\":\"{}\"}}",
-                esc(name),
-                esc(prompt),
-                esc(reference_sql)
+                "{{\"name\":\"{}\",\"prompt\":\"{}\",\"reference_sql\":\"{}\",\
+                 \"unordered\":{},\"ignore_column_names\":{}}}",
+                esc(t.name),
+                esc(t.prompt),
+                esc(t.reference_sql),
+                t.unordered,
+                t.ignore_column_names,
             )
         })
         .collect();
@@ -78,19 +96,23 @@ fn sql_type(ty: &arrow_schema::DataType) -> &'static str {
     }
 }
 
-/// Build the four standard per-object discovery/description tags (title,
-/// doc_llm, doc_md, keywords).
+/// Build the standard per-object discovery/description tags (title, doc_llm,
+/// doc_md, keywords) plus the `vgi.category` that places the object in the
+/// schema's `vgi.categories` registry (VGI413). `category` MUST name one of the
+/// categories declared on the schema in `main.rs`.
 pub fn object_tags(
     title: &str,
     description_llm: &str,
     description_md: &str,
     keywords: &str,
+    category: &str,
 ) -> Vec<(String, String)> {
     vec![
         ("vgi.title".to_string(), title.to_string()),
         ("vgi.doc_llm".to_string(), description_llm.to_string()),
         ("vgi.doc_md".to_string(), description_md.to_string()),
         ("vgi.keywords".to_string(), keywords_json(keywords)),
+        ("vgi.category".to_string(), category.to_string()),
     ]
 }
 

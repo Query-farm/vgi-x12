@@ -69,6 +69,7 @@ impl TableFunction for EdifactSegments {
              and envelope keys carried down. Reads a file path/glob or inline content.",
             "edifact, un/edifact, edi, segments, elements, explode, una, unb, unh, orders, \
              invoic, desadv, release character, table function",
+            "UN/EDIFACT",
         );
         tags.push((
             "vgi.result_columns_md".into(),
@@ -286,6 +287,7 @@ impl TableFunction for EdifactEnvelope {
              flag. Reads a file path/glob or inline content.",
             "edifact, un/edifact, envelope, unb, ung, unh, unt, message type, control \
              reference, orders, invoic, routing, table function",
+            "UN/EDIFACT",
         );
         tags.push((
             "vgi.result_columns_md".into(),

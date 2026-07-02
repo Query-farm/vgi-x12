@@ -46,6 +46,7 @@ impl ScalarFunction for TransactionTypeFn {
                      UNH02 message type; NULL when none is found.",
                     "transaction type, detect, route, triage, st01, unh, message type, x12, \
                      edifact, 835, 837, 270, 271, 850",
+                    "Interchange sniffers",
                 );
                 tags.push((
                     "vgi.executable_examples".into(),

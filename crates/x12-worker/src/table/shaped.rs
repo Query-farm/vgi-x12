@@ -46,32 +46,47 @@ impl TableFunction for Shaped {
     fn metadata(&self) -> FunctionMetadata {
         let st = self.def.st01;
         let title = format!("X12 {} ({})", self.def.fn_name, st);
+        let hints = set_hints(st);
         let doc_llm = format!(
-            "Shaped, relational view of X12 transaction set {st} ({fn_name}). `path` may be a glob \
-             (e.g. '/data/*.{st}'); or inline VARCHAR/BLOB content (auto-detected by the ISA/UNA/UNB prefix). Every row \
-             carries the four envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, \
-             transaction_type) plus source_path, then this set's positional columns. Columns are \
-             named by the PUBLIC segment ID and the element position only (e.g. clp_total_paid = \
-             CLP04); raw codes are surfaced verbatim — code-value translation needs your own \
-             licensed X12 reference. A parent segment starts each logical row group; repeating \
-             children fan out to one row each sharing the parent's keys, so re-aggregate with \
-             GROUP BY on the parent id. Structural / positional only — no TR3 loop or code-set \
-             rules.",
+            "Shaped, relational view of X12 transaction set {st} ({fn_name}) — {set_desc}. The \
+             single `input` argument takes a file path or glob (e.g. '/data/*.{st}'), or inline \
+             VARCHAR/BLOB content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the \
+             five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, \
+             source_path), then this set's positional columns — for example {sample_cols}. Columns \
+             are named by the PUBLIC segment ID and element position only (e.g. {illustration}); \
+             raw codes are surfaced verbatim, so code-value translation needs your own licensed \
+             X12 reference. Each {parent} parent starts a logical row group; repeating children \
+             fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on \
+             the parent id. Structural / positional only — no TR3 loop or code-set rules.",
             st = st,
             fn_name = self.def.fn_name,
+            set_desc = hints.set_desc,
+            sample_cols = hints.sample_cols,
+            illustration = hints.illustration,
+            parent = hints.parent,
         );
         let doc_md = format!(
-            "Shaped positional view of X12 `{st}`. Envelope keys + positional columns named by \
-             public segment ID and element position; raw codes verbatim. Reads a file path/glob \
-             or inline content.",
-            st = st
+            "Shaped positional view of X12 `{st}` ({set_desc}). Carries the five envelope keys \
+             plus positional columns named by public segment ID and element position (e.g. \
+             {illustration}) — such as {sample_cols}; raw codes verbatim. Reads a file path/glob, \
+             inline VARCHAR content, or a BLOB.",
+            st = st,
+            set_desc = hints.set_desc,
+            illustration = hints.illustration,
+            sample_cols = hints.sample_cols,
         );
         let keywords = format!(
             "x12, edi, {st}, read_{st}, shaped, healthcare edi, claim, remittance, eligibility, \
              purchase order, acknowledgement, parse edi, table function",
             st = st
         );
-        let mut tags = crate::meta::object_tags(&title, &doc_llm, &doc_md, &keywords);
+        let mut tags = crate::meta::object_tags(
+            &title,
+            &doc_llm,
+            &doc_md,
+            &keywords,
+            "Shaped transaction views",
+        );
         tags.push((
             "vgi.result_columns_md".into(),
             crate::meta::result_columns_md(&self.output_schema()),
@@ -145,6 +160,72 @@ impl TableFunction for Shaped {
             params.output_schema.clone(),
             rows,
         )))
+    }
+}
+
+/// Per-set doc hints so each shaped view's `doc_llm`/`doc_md` describes the
+/// ACTUAL set (its parent segment, representative real columns, and a
+/// name→position illustration drawn from that set) rather than a shared 835
+/// template. `set_desc` uses only general industry terms — no copyrighted TR3
+/// loop or code-value names. `sample_cols` and `illustration` reference real
+/// columns emitted by the set's extractor in `x12_core::shaped`.
+struct SetHints {
+    set_desc: &'static str,
+    parent: &'static str,
+    illustration: &'static str,
+    sample_cols: &'static str,
+}
+
+fn set_hints(st01: &str) -> SetHints {
+    match st01 {
+        "835" => SetHints {
+            set_desc: "an 835 remittance advice / ERA",
+            parent: "CLP",
+            illustration: "clp_total_paid = CLP04",
+            sample_cols: "clp_claim_id, clp_total_paid, payer_name, cas_reason_code, svc_paid",
+        },
+        "837" => SetHints {
+            set_desc: "an 837 health-care claim",
+            parent: "CLM",
+            illustration: "clm_total_charge = CLM02",
+            sample_cols: "billing_provider_npi, subscriber_id, clm_total_charge, sv1_procedure",
+        },
+        "270" => SetHints {
+            set_desc: "a 270 eligibility / benefit inquiry",
+            parent: "HL",
+            illustration: "hl_level_code = HL03",
+            sample_cols: "hl_id, hl_level_code, entity_name, eb_service_type",
+        },
+        "271" => SetHints {
+            set_desc: "a 271 eligibility / benefit response",
+            parent: "HL",
+            illustration: "eb_plan_description = EB05",
+            sample_cols: "hl_id, entity_name, eb_plan_description, eb_benefit_amount",
+        },
+        "850" => SetHints {
+            set_desc: "an 850 purchase order",
+            parent: "PO1",
+            illustration: "po1_quantity = PO102",
+            sample_cols: "po1_line_number, po1_product_id, po1_quantity, po1_unit_price, n1_name",
+        },
+        "997" => SetHints {
+            set_desc: "a 997 functional acknowledgment",
+            parent: "AK2",
+            illustration: "ak5_status = AK501",
+            sample_cols: "ak2_transaction_control, ak5_status, ak9_status, ak3_segment_id",
+        },
+        "999" => SetHints {
+            set_desc: "a 999 implementation acknowledgment",
+            parent: "AK2",
+            illustration: "ik5_status = IK501",
+            sample_cols: "ak2_transaction_control, ik5_status, ik3_segment_id, ak9_status",
+        },
+        _ => SetHints {
+            set_desc: "a shaped X12 transaction set",
+            parent: "the set's",
+            illustration: "clp_total_paid = CLP04",
+            sample_cols: "the set's positional data columns",
+        },
     }
 }
 

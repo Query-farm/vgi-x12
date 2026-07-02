@@ -69,54 +69,70 @@ fn catalog_metadata(name: &str) -> CatalogModel {
             (
                 "vgi.doc_md".to_string(),
                 "# x12 — ANSI ASC X12 / UN-EDIFACT EDI in SQL\n\n\
-                 **Query raw `.edi` / `.x12` / `.835` / `.837` files directly from DuckDB.** The \
-                 `x12` worker sniffs each interchange's delimiters from its fixed-width ISA, \
-                 explodes the ISA/GS/ST envelope into segment and element rows, validates the \
-                 structural segment counts and control numbers, and — for the common healthcare \
-                 and B2B transaction sets — projects shaped, relational views keyed by public \
-                 segment IDs.\n\n\
-                 **Generic surface.** `segments` (one row per segment, elements as a LIST), \
-                 `segments_elements` (one row per element, split into composite components and \
-                 repetitions), and `envelope` (one row per ST transaction with ISA/GS/ST metadata \
-                 and the SE/GE/IEA structural validity flags). Two scalars, `delimiters(content)` \
-                 and `transaction_type(content)`, sniff inline content for routing.\n\n\
-                 **Shaped views.** `read_835` (remittance / ERA), `read_837` (claim), `read_270` / \
-                 `read_271` (eligibility), `read_850` (purchase order), and `read_997` / `read_999` \
-                 (functional acknowledgements). Each carries the four envelope keys plus positional \
-                 columns named only by public segment ID and element position (`clp_total_paid` = \
-                 `CLP04`); raw codes are surfaced verbatim.\n\n\
-                 **UN/EDIFACT.** `edifact_segments` and `edifact_envelope` handle the UNA/UNB/UNH \
-                 variant, including release-character un-escaping.\n\n\
-                 Every table function accepts a file `path` (which may glob) or inline content via \
-                 inline VARCHAR content or a BLOB. Parsing makes **no outbound calls** — a feature for \
-                 PHI/PII data-residency, not a footnote. The worker ships the **public X12 \
-                 syntax** only; it embeds no copyrighted ASC X12 TR3 implementation-guide content, \
-                 so human-readable code translation requires your own licensed X12 reference. \
-                 Part of the [Query.Farm](https://query.farm) VGI ecosystem — see the \
+                 **Query raw EDI interchanges directly from DuckDB** — files (`.edi` / `.x12` / \
+                 `.835` / `.837`, which may glob), inline VARCHAR content, or a BLOB. No staging, \
+                 no external service.\n\n\
+                 **What it does.** It sniffs each interchange's own delimiters from the fixed-width \
+                 ISA header, walks the ISA/GS/ST nesting, and hands back rows you can filter, join, \
+                 and aggregate in SQL. Structural counts and control numbers are validated, so you \
+                 can tell a complete interchange from a truncated one.\n\n\
+                 **Pick your level of shaping.** Work at the *raw* level — one row per segment, or \
+                 one row per element with composite components and repetitions split out — for \
+                 full-fidelity inspection; at the *interchange-summary* level — one row per \
+                 transaction with its ISA/GS/ST control metadata and the SE/GE/IEA structural \
+                 validity flags — for envelope checks; or at the *shaped* level — flat relational \
+                 projections of the common healthcare and B2B transaction sets, keyed by public \
+                 segment ID and element position. Inline delimiter- and type-sniffing scalars let \
+                 you route or triage content before a full parse, and UN/EDIFACT (UNA/UNB/UNH, \
+                 release-character un-escaping) is handled alongside X12.\n\n\
+                 **When to reach for it.** Ad-hoc inspection and structural validation of \
+                 inbound/outbound EDI, extracting claim / remittance / eligibility / \
+                 purchase-order fields into tables, or classifying files by transaction type \
+                 before loading.\n\n\
+                 **Data residency.** Parsing is 100% local with no outbound calls — a feature for \
+                 PHI/PII workloads. Ships **public X12 syntax only**: it embeds no copyrighted ASC \
+                 X12 TR3 implementation-guide content, so human-readable code-value translation \
+                 needs your own licensed X12 reference. Part of the \
+                 [Query.Farm](https://query.farm) VGI ecosystem — see the \
                  [source repository](https://github.com/Query-farm/vgi-x12)."
                     .to_string(),
             ),
             (
                 "vgi.agent_test_tasks".to_string(),
                 crate::meta::agent_test_tasks_json(&[
-                    (
-                        "worker_version",
-                        "What version of the x12 worker is running? Return one row with a single \
-                         column named version.",
-                        "SELECT x12.main.x12_version() AS version",
-                    ),
-                    (
-                        "detect_transaction_type",
-                        "I have an X12 interchange in a string. Detect its transaction set type. \
-                         Return one column named tx_type.",
-                        "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type",
-                    ),
-                    (
-                        "sniff_element_separator",
-                        "Sniff the element separator byte from an ISA header string. Return one \
-                         column named element_sep.",
-                        "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep",
-                    ),
+                    crate::meta::AgentTask {
+                        name: "worker_version",
+                        prompt: "What version of the x12 worker is running? Return one row with a \
+                                 single column named version.",
+                        reference_sql: "SELECT x12.main.x12_version() AS version",
+                        unordered: true,
+                        ignore_column_names: false,
+                    },
+                    crate::meta::AgentTask {
+                        name: "detect_transaction_type",
+                        // Embed the exact interchange in the prompt so the answer
+                        // is a single deterministic value ('835') the analyst can
+                        // reproduce — an open "I have a string" prompt has no fixed
+                        // answer and can't be graded against a canonical reference.
+                        prompt: "Detect the transaction set type of this X12 interchange string, \
+                                 using the worker's inline content support (do not write it to a \
+                                 file): \
+                                 'ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~'. \
+                                 Return one row with a single column named tx_type.",
+                        reference_sql: "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type",
+                        unordered: true,
+                        ignore_column_names: false,
+                    },
+                    crate::meta::AgentTask {
+                        name: "sniff_element_separator",
+                        prompt: "Sniff the element separator character used by this ISA header \
+                                 string: \
+                                 'ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~'. \
+                                 Return one row with a single column named element_sep.",
+                        reference_sql: "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep",
+                        unordered: true,
+                        ignore_column_names: false,
+                    },
                 ]),
             ),
             ("vgi.author".to_string(), "Query.Farm".to_string()),
@@ -165,11 +181,25 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 ),
                 (
                     "vgi.doc_md".to_string(),
-                    "The single schema for the `x12` worker. It holds the generic explode \
-                     functions (`segments`, `segments_elements`, `envelope`), the shaped views \
-                     (`read_835`/`read_837`/`read_270`/`read_271`/`read_850`/`read_997`/`read_999`), \
-                     the EDIFACT functions (`edifact_segments`, `edifact_envelope`), and the \
-                     `delimiters` / `transaction_type` / `x12_version` scalars."
+                    "The single schema for the `x12` worker. Choose a function by how much shaping \
+                     you want: raw segment/element explosion for full-fidelity inspection, an \
+                     interchange summary with structural validity flags for envelope-level checks, \
+                     or flat shaped projections of the common healthcare and B2B transaction sets \
+                     for direct column access. Inline delimiter- and type-sniffing scalars support \
+                     routing before a full parse, and the UN/EDIFACT family is handled alongside \
+                     X12. Every function accepts a file path (which may glob), inline VARCHAR \
+                     content, or a BLOB."
+                        .to_string(),
+                ),
+                (
+                    "vgi.categories".to_string(),
+                    r#"[
+  {"name": "Interchange sniffers", "description": "Scalar routing helpers that read inline content to report its delimiters, transaction-set type, and the worker version — cheap triage before a full parse."},
+  {"name": "Segment & element explode", "description": "Full-fidelity raw views: one row per segment (elements as a LIST) or one row per element with composite components and repetitions split out."},
+  {"name": "Envelope & structure", "description": "One row per transaction with ISA/GS/ST control metadata and the SE/GE/IEA structural validity flags for completeness checks."},
+  {"name": "Shaped transaction views", "description": "Flat relational projections of the common healthcare and B2B transaction sets, keyed by public segment ID and element position."},
+  {"name": "UN/EDIFACT", "description": "UNA/UNB/UNH interchange parsing with release-character un-escaping, mirroring the X12 raw and envelope surfaces."}
+]"#
                         .to_string(),
                 ),
                 (

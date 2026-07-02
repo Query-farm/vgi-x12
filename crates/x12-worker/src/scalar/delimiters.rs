@@ -66,6 +66,7 @@ impl ScalarFunction for DelimitersFn {
                      content returns NULL.",
                     "delimiters, sniff, x12, edifact, isa, una, element separator, segment \
                      terminator, component separator, repetition separator, struct",
+                    "Interchange sniffers",
                 );
                 tags.push((
                     "vgi.executable_examples".into(),

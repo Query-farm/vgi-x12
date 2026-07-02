@@ -37,6 +37,7 @@ impl ScalarFunction for X12Version {
                     "Return the x12 worker version string, e.g. `x12_version()` → '0.1.0'. \
                      Argument-free and deterministic.",
                     "version, build version, x12_version, diagnostics, worker version, semver",
+                    "Interchange sniffers",
                 );
                 tags.push((
                     "vgi.executable_examples".into(),
