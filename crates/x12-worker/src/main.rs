@@ -181,14 +181,25 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 ),
                 (
                     "vgi.doc_md".to_string(),
-                    "The single schema for the `x12` worker. Choose a function by how much shaping \
-                     you want: raw segment/element explosion for full-fidelity inspection, an \
-                     interchange summary with structural validity flags for envelope-level checks, \
-                     or flat shaped projections of the common healthcare and B2B transaction sets \
-                     for direct column access. Inline delimiter- and type-sniffing scalars support \
-                     routing before a full parse, and the UN/EDIFACT family is handled alongside \
-                     X12. Every function accepts a file path (which may glob), inline VARCHAR \
-                     content, or a BLOB."
+                    "## The `main` schema\n\n\
+                     The single schema for the `x12` worker. It groups every parsing surface for \
+                     ANSI ASC X12 and UN/EDIFACT interchanges, so you attach one worker and reach \
+                     the raw, envelope, and shaped views from the same place.\n\n\
+                     **Choose a function by how much shaping you want:**\n\n\
+                     - *Raw* — segment- and element-level explosion for full-fidelity inspection, \
+                     with composite components and repetitions split out.\n\
+                     - *Interchange summary* — one row per transaction carrying the ISA/GS/ST \
+                     control metadata and the SE/GE/IEA structural validity flags, for \
+                     envelope-level completeness checks.\n\
+                     - *Shaped* — flat relational projections of the common healthcare and B2B \
+                     transaction sets, keyed by public segment ID and element position, for direct \
+                     column access.\n\n\
+                     Inline delimiter- and type-sniffing scalars let you route or triage content \
+                     before committing to a full parse, and the UN/EDIFACT family (UNA/UNB/UNH, \
+                     release-character un-escaping) is handled alongside X12.\n\n\
+                     Every function accepts the same overloaded input: a file path (which may \
+                     glob), inline VARCHAR content, or a BLOB — auto-detected by the \
+                     interchange's `ISA`/`UNA`/`UNB` magic prefix."
                         .to_string(),
                 ),
                 (
