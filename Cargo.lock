@@ -1914,9 +1914,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "vgi"
-version = "0.11.0"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79157be842204e4dd874a2e356df73ee7b0ce678617b1797da20a27e717bd636"
+checksum = "0653ef5ecafff0d1e3423f42632b93adb834b7090855c2a8a7be486cd56370b7"
 dependencies = [
  "arrow",
  "arrow-arith",
@@ -1931,11 +1931,12 @@ dependencies = [
  "ctrlc",
  "libc",
  "log",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
  "tokio",
- "vgi-rpc",
+ "vgi-rpc 0.11.0",
 ]
 
 [[package]]
@@ -1943,6 +1944,41 @@ name = "vgi-rpc"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fb03d9ef958570ca08caa2ae90c9df5f112361b8fe04226feddd868dccdbdae"
+dependencies = [
+ "arrow-array",
+ "arrow-buffer",
+ "arrow-cast",
+ "arrow-data",
+ "arrow-ipc",
+ "arrow-schema",
+ "arrow-select",
+ "axum",
+ "base64",
+ "bincode",
+ "bytes",
+ "chacha20poly1305",
+ "chrono",
+ "flatbuffers",
+ "hmac",
+ "rand",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "url",
+ "vgi-rpc-macros 0.8.0",
+ "zstd",
+]
+
+[[package]]
+name = "vgi-rpc"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5236cedf663d687df8b7a73f15653fe6217853a2e1e46905fca39c94b9bdcfe"
 dependencies = [
  "arrow-array",
  "arrow-buffer",
@@ -1970,7 +2006,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "url",
- "vgi-rpc-macros",
+ "vgi-rpc-macros 0.11.0",
  "windows-sys 0.59.0",
  "zstd",
 ]
@@ -1980,6 +2016,17 @@ name = "vgi-rpc-macros"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e390d80aba8541ace01f79b23f994eb090e9eaa38df1634031df7249a939311"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "vgi-rpc-macros"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "404c27b33e69c9f6f8af9143a3f60d59b6d14b8c317aa5356aea1dfb696cc03f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2217,7 +2264,7 @@ dependencies = [
  "glob",
  "log",
  "vgi",
- "vgi-rpc",
+ "vgi-rpc 0.8.0",
  "x12-core",
 ]
 
