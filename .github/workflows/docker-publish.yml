@@ -25,8 +25,14 @@ concurrency:
 
 jobs:
   # Gate every image on the full unit + vgi-extension integration suite, so a
-  # broken worker is never imaged.
+  # broken worker is never imaged. This job's permissions must be >= those any
+  # job in the called ci.yml requests, or the whole run startup-fails: ci.yml's
+  # `audit` job (rustsec/audit-check) needs `checks: write` to post its check
+  # run, so grant it here (a called workflow job cannot exceed its caller).
   ci:
+    permissions:
+      contents: read
+      checks: write
     uses: ./.github/workflows/ci.yml
 
   publish:
