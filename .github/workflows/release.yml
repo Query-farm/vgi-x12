@@ -27,6 +27,10 @@ jobs:
   # Gate the release on the same unit + SQLLogic e2e suite as push/PR.
   ci:
     uses: ./.github/workflows/ci.yml
+    # ci.yml's cargo-audit job references secrets.GITHUB_TOKEN; a called reusable
+    # workflow only sees secrets that are passed in, so inherit them (otherwise
+    # the whole release run fails at startup with an unresolved-secret error).
+    secrets: inherit
 
   release:
     needs: [ci]
