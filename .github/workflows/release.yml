@@ -26,10 +26,14 @@ permissions:
 jobs:
   # Gate the release on the same unit + SQLLogic e2e suite as push/PR.
   ci:
+    # ci.yml's cargo-audit job requests `checks: write` (to post the audit
+    # check-run). A called reusable workflow's jobs cannot request more than the
+    # caller grants them, and this file's default token is `contents: read`, so
+    # without widening the ci job here the whole release run fails at startup.
+    permissions:
+      contents: read
+      checks: write
     uses: ./.github/workflows/ci.yml
-    # ci.yml's cargo-audit job references secrets.GITHUB_TOKEN; a called reusable
-    # workflow only sees secrets that are passed in, so inherit them (otherwise
-    # the whole release run fails at startup with an unresolved-secret error).
     secrets: inherit
 
   release:
