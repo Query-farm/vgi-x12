@@ -40,46 +40,39 @@ impl ScalarFunction for DelimitersFn {
     }
 
     fn metadata(&self) -> FunctionMetadata {
+        let examples = vec![FunctionExample {
+            sql: "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep;".into(),
+            description: "Sniff the element separator (ISA byte-3) from a canonical ISA header.".into(),
+            expected_output: None,
+        }];
+        let mut tags = crate::meta::object_tags(
+            "Sniff EDI Delimiters",
+            "Discover the delimiter bytes governing an inline X12 or UN/EDIFACT interchange \
+             and return them as a `STRUCT(element, segment, component, repetition)`, each a \
+             1-char `VARCHAR`. For X12 the bytes are read deterministically from the \
+             fixed-width ISA (element = byte after 'ISA', component = ISA16, segment = byte \
+             after ISA16, repetition = ISA11 or NULL for the version-4010 'U' placeholder); \
+             for EDIFACT they come from the optional UNA service-string advice (or the \
+             EDIFACT defaults). `repetition` is NULL when no repetition separator is in \
+             use. Content that is not a recognizable interchange returns a NULL struct \
+             (never an error). Pass the content from a column, e.g. via read_text().",
+            "Sniff the EDI delimiters from inline content into a `STRUCT(element, segment, \
+             component, repetition)`; `repetition` is NULL when unused, and unrecognized \
+             content returns NULL.",
+            "delimiters, sniff, x12, edifact, isa, una, element separator, segment \
+             terminator, component separator, repetition separator, struct",
+            "Interchange sniffers",
+        );
+        tags.push((
+            "vgi.example_queries".into(),
+            crate::meta::example_queries_tag(&examples),
+        ));
         FunctionMetadata {
             description: "Sniff the X12/EDIFACT delimiters from inline content into a \
                           STRUCT(element, segment, component, repetition)"
                 .into(),
-            examples: vec![FunctionExample {
-                sql: "SELECT x12.main.delimiters('ISA*00*          *00*          *ZZ*S              *ZZ*R              *240101*1200*^*00501*000000001*0*P*:~');".into(),
-                description: "Sniff the four delimiter bytes from an ISA header.".into(),
-                expected_output: None,
-            }],
-            tags: {
-                let mut tags = crate::meta::object_tags(
-                    "Sniff EDI Delimiters",
-                    "Discover the delimiter bytes governing an inline X12 or UN/EDIFACT interchange \
-                     and return them as a STRUCT(element, segment, component, repetition), each a \
-                     1-char VARCHAR. For X12 the bytes are read deterministically from the \
-                     fixed-width ISA (element = byte after 'ISA', component = ISA16, segment = byte \
-                     after ISA16, repetition = ISA11 or NULL for the version-4010 'U' placeholder); \
-                     for EDIFACT they come from the optional UNA service-string advice (or the \
-                     EDIFACT defaults). `repetition` is NULL when no repetition separator is in \
-                     use. Content that is not a recognizable interchange returns a NULL struct \
-                     (never an error). Pass the content from a column, e.g. via read_text().",
-                    "Sniff the EDI delimiters from inline content into a STRUCT(element, segment, \
-                     component, repetition); `repetition` is NULL when unused, and unrecognized \
-                     content returns NULL.",
-                    "delimiters, sniff, x12, edifact, isa, una, element separator, segment \
-                     terminator, component separator, repetition separator, struct",
-                    "Interchange sniffers",
-                );
-                tags.push((
-                    "vgi.executable_examples".into(),
-                    r#"[
-  {
-    "description": "Sniff the delimiters from a canonical ISA header.",
-    "sql": "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep"
-  }
-]"#
-                    .into(),
-                ));
-                tags
-            },
+            examples,
+            tags,
             ..Default::default()
         }
     }

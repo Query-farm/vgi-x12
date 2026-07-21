@@ -34,7 +34,8 @@ pub use delimiters::Delimiters;
 pub use envelope::{Group, Interchange, Transaction};
 pub use segment::Segment;
 
-/// The crate (and worker) version string, surfaced by `x12_version()`.
+/// The crate (and worker) version string, published as the worker catalog's
+/// `implementation_version`.
 pub fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }

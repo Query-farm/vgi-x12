@@ -1,7 +1,8 @@
 # name: test/sql/scalars.test
 # group: [vgi_x12]
 #
-# Scalar functions: x12_version(), delimiters(content), transaction_type(content).
+# Scalar functions: delimiters(content), transaction_type(content); plus the
+# browsable transaction_sets reference view.
 # All run on inline content — no external file needed.
 
 require-env VGI_X12_WORKER
@@ -15,11 +16,17 @@ ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
 statement ok
 SET search_path = 'x12.main';
 
-# Version is a non-empty semver string.
-query T
-SELECT regexp_matches(x12_version(), '^[0-9]+\.[0-9]+\.[0-9]+$');
+# The transaction_sets reference view is browsable with no arguments.
+query TT
+SELECT transaction_set, shaped_function FROM x12.main.transaction_sets ORDER BY transaction_set;
 ----
-true
+270	read_270
+271	read_271
+835	read_835
+837	read_837
+850	read_850
+997	read_997
+999	read_999
 
 # Delimiter sniff from a canonical ISA header → STRUCT fields.
 query TTTT

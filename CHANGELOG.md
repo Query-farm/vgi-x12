@@ -32,8 +32,15 @@ only; parsing is 100% local (no network surface).
 
 ### Scalars
 
-- `x12_version()`, `delimiters(content)` → `STRUCT(element, segment, component,
-  repetition)`, `transaction_type(content)`.
+- `delimiters(content)` → `STRUCT(element, segment, component, repetition)`,
+  `transaction_type(content)`.
+
+### Reference
+
+- `transaction_sets` — a zero-argument, browsable reference view mapping each
+  shaped X12 transaction set to its `read_*` function. The worker's build version
+  is published as the catalog `implementation_version` (there is no `*_version()`
+  scalar).
 
 ### Notes
 

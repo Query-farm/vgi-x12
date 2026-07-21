@@ -27,11 +27,60 @@ pub fn keywords_json(keywords: &str) -> String {
 /// labels). Keeping these explicit per task makes each reference deterministic
 /// under the linter's strict result compare.
 pub struct AgentTask {
-    pub name: &'static str,
-    pub prompt: &'static str,
-    pub reference_sql: &'static str,
+    pub name: String,
+    pub prompt: String,
+    pub reference_sql: String,
     pub unordered: bool,
     pub ignore_column_names: bool,
+}
+
+/// Build one agent test task whose `reference_sql` runs
+/// `SELECT <select> FROM x12.main.<fn_name>('<interchange>')` over an inline X12
+/// interchange, with a prompt that embeds the same interchange so the simulated
+/// analyst can reproduce the exact single answer. `interchange` must be X12
+/// (its `*`/`~`/`:`/`^` delimiters carry no single quote, so it embeds directly
+/// in the SQL string literal).
+pub fn table_task(
+    name: &str,
+    ask: &str,
+    fn_name: &str,
+    select: &str,
+    interchange: &str,
+) -> AgentTask {
+    AgentTask {
+        name: name.to_string(),
+        prompt: format!(
+            "{ask} Use the worker's inline-content support (do not write it to a file) over this \
+             X12 interchange: '{interchange}'."
+        ),
+        reference_sql: format!("SELECT {select} FROM x12.main.{fn_name}('{interchange}')"),
+        unordered: true,
+        ignore_column_names: true,
+    }
+}
+
+/// Like [`table_task`] but for a UN/EDIFACT `interchange`, whose `'` segment
+/// terminator is doubled for the SQL string literal (the prompt keeps it raw).
+pub fn edifact_task(
+    name: &str,
+    ask: &str,
+    fn_name: &str,
+    select: &str,
+    interchange: &str,
+) -> AgentTask {
+    AgentTask {
+        name: name.to_string(),
+        prompt: format!(
+            "{ask} Use the worker's inline-content support (do not write it to a file) over this \
+             UN/EDIFACT interchange: '{interchange}'."
+        ),
+        reference_sql: format!(
+            "SELECT {select} FROM x12.main.{fn_name}('{}')",
+            interchange.replace('\'', "''")
+        ),
+        unordered: true,
+        ignore_column_names: true,
+    }
 }
 
 /// Build the `vgi.agent_test_tasks` JSON value: a fixed suite of analyst tasks
@@ -50,9 +99,9 @@ pub fn agent_test_tasks_json(tasks: &[AgentTask]) -> String {
             format!(
                 "{{\"name\":\"{}\",\"prompt\":\"{}\",\"reference_sql\":\"{}\",\
                  \"unordered\":{},\"ignore_column_names\":{}}}",
-                esc(t.name),
-                esc(t.prompt),
-                esc(t.reference_sql),
+                esc(&t.name),
+                esc(&t.prompt),
+                esc(&t.reference_sql),
                 t.unordered,
                 t.ignore_column_names,
             )
@@ -61,26 +110,68 @@ pub fn agent_test_tasks_json(tasks: &[AgentTask]) -> String {
     format!("[{}]", items.join(","))
 }
 
-/// Render a `vgi.result_columns_md` Markdown table (VGI307) from a table
-/// function's output schema, using each field's `comment` metadata as the
-/// description. Function-backed tables have a schema DuckDB can't expose
-/// statically, so this documents the returned columns for discovery.
-pub fn result_columns_md(schema: &arrow_schema::SchemaRef) -> String {
-    let mut md = String::from("| column | type | description |\n|---|---|---|\n");
-    for field in schema.fields() {
-        let comment = field
-            .metadata()
-            .get("comment")
-            .map(String::as_str)
-            .unwrap_or("");
-        md.push_str(&format!(
-            "| `{}` | {} | {} |\n",
-            field.name(),
-            sql_type(field.data_type()),
-            comment
-        ));
+/// Escape a string for embedding in a JSON string literal.
+fn json_str(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
     }
-    md
+    out.push('"');
+    out
+}
+
+/// Render the `vgi.result_columns_schema` JSON (VGI307) from a table function's
+/// output schema, using each field's `comment` metadata as the description.
+/// Function-backed tables have a schema DuckDB can't expose statically, so this
+/// documents the returned columns as a JSON array of `{name, type, description}`
+/// objects for discovery.
+pub fn result_columns_schema(schema: &arrow_schema::SchemaRef) -> String {
+    let items: Vec<String> = schema
+        .fields()
+        .iter()
+        .map(|field| {
+            let comment = field
+                .metadata()
+                .get("comment")
+                .map(String::as_str)
+                .unwrap_or("");
+            format!(
+                "{{\"name\":{},\"type\":{},\"description\":{}}}",
+                json_str(field.name()),
+                json_str(sql_type(field.data_type())),
+                json_str(comment),
+            )
+        })
+        .collect();
+    format!("[{}]", items.join(","))
+}
+
+/// Build the `vgi.example_queries` JSON tag (VGI515) from a function's native
+/// [`vgi::FunctionExample`] list: a JSON array of `{description, sql}` objects.
+/// The native `duckdb_functions().examples` carrier drops per-example
+/// descriptions, so this described-JSON tag is the carrier the linter reads;
+/// keep the `sql` byte-identical to the native example so the two dedupe.
+pub fn example_queries_tag(examples: &[vgi::FunctionExample]) -> String {
+    let items: Vec<String> = examples
+        .iter()
+        .map(|ex| {
+            format!(
+                "{{\"description\":{},\"sql\":{}}}",
+                json_str(&ex.description),
+                json_str(&ex.sql),
+            )
+        })
+        .collect();
+    format!("[{}]", items.join(","))
 }
 
 /// Map an Arrow type to the SQL type name DuckDB exposes it as.
@@ -91,7 +182,7 @@ fn sql_type(ty: &arrow_schema::DataType) -> &'static str {
         DataType::Int64 => "BIGINT",
         DataType::Int32 => "INTEGER",
         DataType::Boolean => "BOOLEAN",
-        DataType::List(_) | DataType::LargeList(_) => "LIST(VARCHAR)",
+        DataType::List(_) | DataType::LargeList(_) => "VARCHAR[]",
         _ => "VARCHAR",
     }
 }

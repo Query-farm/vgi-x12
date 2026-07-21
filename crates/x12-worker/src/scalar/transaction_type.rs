@@ -22,44 +22,37 @@ impl ScalarFunction for TransactionTypeFn {
     }
 
     fn metadata(&self) -> FunctionMetadata {
+        let examples = vec![FunctionExample {
+            sql: "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type;".into(),
+            description: "Detect that an inline interchange carries an 835.".into(),
+            expected_output: None,
+        }];
+        let mut tags = crate::meta::object_tags(
+            "Detect EDI Transaction Type",
+            "Detect the transaction set type of inline X12 or UN/EDIFACT content without \
+             fully parsing the body: returns the first X12 ST01 transaction set identifier \
+             ('835', '837', '270', '271', '850', '997', '999', …) or, for an EDIFACT \
+             interchange, the UNH02 message type ('ORDERS', 'INVOIC', …). Useful for \
+             routing / triage. Returns NULL when no transaction header is found or the \
+             content is unrecognized (never an error). Pass the content from a column, e.g. \
+             via read_text().",
+            "Detect the EDI transaction type of inline content — first X12 ST01 or EDIFACT \
+             UNH02 message type; NULL when none is found.",
+            "transaction type, detect, route, triage, st01, unh, message type, x12, \
+             edifact, 835, 837, 270, 271, 850",
+            "Interchange sniffers",
+        );
+        tags.push((
+            "vgi.example_queries".into(),
+            crate::meta::example_queries_tag(&examples),
+        ));
         FunctionMetadata {
             description: "Detect the transaction type (first ST01, or EDIFACT UNH02 message type) \
                           of inline content"
                 .into(),
-            examples: vec![FunctionExample {
-                sql: "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*S              *ZZ*R              *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~');".into(),
-                description: "Detect that an interchange carries an 835.".into(),
-                expected_output: None,
-            }],
+            examples,
             return_type: Some(DataType::Utf8),
-            tags: {
-                let mut tags = crate::meta::object_tags(
-                    "Detect EDI Transaction Type",
-                    "Detect the transaction set type of inline X12 or UN/EDIFACT content without \
-                     fully parsing the body: returns the first X12 ST01 transaction set identifier \
-                     ('835', '837', '270', '271', '850', '997', '999', …) or, for an EDIFACT \
-                     interchange, the UNH02 message type ('ORDERS', 'INVOIC', …). Useful for \
-                     routing / triage. Returns NULL when no transaction header is found or the \
-                     content is unrecognized (never an error). Pass the content from a column, e.g. \
-                     via read_text().",
-                    "Detect the EDI transaction type of inline content — first X12 ST01 or EDIFACT \
-                     UNH02 message type; NULL when none is found.",
-                    "transaction type, detect, route, triage, st01, unh, message type, x12, \
-                     edifact, 835, 837, 270, 271, 850",
-                    "Interchange sniffers",
-                );
-                tags.push((
-                    "vgi.executable_examples".into(),
-                    r#"[
-  {
-    "description": "Detect that an inline interchange carries an 835.",
-    "sql": "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type"
-  }
-]"#
-                    .into(),
-                ));
-                tags
-            },
+            tags,
             ..Default::default()
         }
     }

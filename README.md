@@ -86,7 +86,10 @@ FROM x12.segments_elements('ISA*00*          *00*          *ZZ*S              *Z
 | `edifact_envelope(input)` | table | UN/EDIFACT one row per UNH message |
 | `delimiters(content)` | scalar | `STRUCT(element, segment, component, repetition)` |
 | `transaction_type(content)` | scalar | first ST01 (X12) or UNH02 message type (EDIFACT) |
-| `x12_version()` | scalar | the worker's semver version string |
+| `transaction_sets` | view | browsable reference: each shaped X12 set → its `read_*` function |
+
+The worker's build version is published as the catalog `implementation_version`
+(see `duckdb_databases()`), not as a scalar function.
 
 ## How it works
 

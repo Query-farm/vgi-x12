@@ -72,17 +72,22 @@ impl TableFunction for EdifactSegments {
             "UN/EDIFACT",
         );
         tags.push((
-            "vgi.result_columns_md".into(),
-            crate::meta::result_columns_md(&segments_schema()),
+            "vgi.result_columns_schema".into(),
+            crate::meta::result_columns_schema(&segments_schema()),
+        ));
+        let examples = vec![crate::meta::edifact_example(
+            "edifact_segments",
+            "segment_id, element_index, value",
+            crate::meta::EXAMPLE_EDIFACT,
+            "Explode an inline EDIFACT ORDERS interchange into one row per element.",
+        )];
+        tags.push((
+            "vgi.example_queries".into(),
+            crate::meta::example_queries_tag(&examples),
         ));
         FunctionMetadata {
             description: "Explode a UN/EDIFACT interchange into one row per element".into(),
-            examples: vec![crate::meta::edifact_example(
-                "edifact_segments",
-                "segment_id, element_index, value",
-                crate::meta::EXAMPLE_EDIFACT,
-                "Explode an inline EDIFACT ORDERS interchange into one row per element.",
-            )],
+            examples,
             tags,
             ..Default::default()
         }
@@ -290,19 +295,24 @@ impl TableFunction for EdifactEnvelope {
             "UN/EDIFACT",
         );
         tags.push((
-            "vgi.result_columns_md".into(),
-            crate::meta::result_columns_md(&envelope_schema()),
+            "vgi.result_columns_schema".into(),
+            crate::meta::result_columns_schema(&envelope_schema()),
+        ));
+        let examples = vec![crate::meta::edifact_example(
+            "edifact_envelope",
+            "interchange_ctrl, syntax_id, sender_id, receiver_id",
+            crate::meta::EXAMPLE_EDIFACT,
+            "Summarize an inline EDIFACT ORDERS interchange as one envelope row.",
+        )];
+        tags.push((
+            "vgi.example_queries".into(),
+            crate::meta::example_queries_tag(&examples),
         ));
         FunctionMetadata {
             description:
                 "One row per UN/EDIFACT message: UNB/UNG/UNH envelope metadata + UNT validity"
                     .into(),
-            examples: vec![crate::meta::edifact_example(
-                "edifact_envelope",
-                "interchange_ctrl, syntax_id, sender_id, receiver_id",
-                crate::meta::EXAMPLE_EDIFACT,
-                "Summarize an inline EDIFACT ORDERS interchange as one envelope row.",
-            )],
+            examples,
             tags,
             ..Default::default()
         }

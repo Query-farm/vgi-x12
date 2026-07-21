@@ -62,20 +62,25 @@ impl TableFunction for Segments {
             "Segment & element explode",
         );
         tags.push((
-            "vgi.result_columns_md".into(),
-            crate::meta::result_columns_md(&output_schema()),
+            "vgi.result_columns_schema".into(),
+            crate::meta::result_columns_schema(&output_schema()),
+        ));
+        let examples = vec![crate::meta::table_example(
+            "segments",
+            "segment_index, segment_id, elements",
+            "837",
+            "BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~\
+             CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~",
+            "Explode an inline 837 claim interchange into one row per segment.",
+        )];
+        tags.push((
+            "vgi.example_queries".into(),
+            crate::meta::example_queries_tag(&examples),
         ));
         FunctionMetadata {
             description: "Explode an X12 interchange into one row per segment (elements as a LIST)"
                 .into(),
-            examples: vec![crate::meta::table_example(
-                "segments",
-                "segment_index, segment_id, elements",
-                "837",
-                "BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~\
-                 CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~",
-                "Explode an inline 837 claim interchange into one row per segment.",
-            )],
+            examples,
             tags,
             ..Default::default()
         }

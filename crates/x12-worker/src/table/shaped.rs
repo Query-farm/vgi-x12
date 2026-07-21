@@ -50,7 +50,8 @@ impl TableFunction for Shaped {
         let doc_llm = format!(
             "Shaped, relational view of X12 transaction set {st} ({fn_name}) — {set_desc}. The \
              single `input` argument takes a file path or glob (e.g. '/data/*.{st}'), or inline \
-             VARCHAR/BLOB content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the \
+             `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries \
+             the \
              five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, \
              source_path), then this set's positional columns — for example {sample_cols}. Columns \
              are named by the PUBLIC segment ID and element position only (e.g. {illustration}); \
@@ -69,7 +70,7 @@ impl TableFunction for Shaped {
             "Shaped positional view of X12 `{st}` ({set_desc}). Carries the five envelope keys \
              plus positional columns named by public segment ID and element position (e.g. \
              {illustration}) — such as {sample_cols}; raw codes verbatim. Reads a file path/glob, \
-             inline VARCHAR content, or a BLOB.",
+             inline `VARCHAR` content, or a `BLOB`.",
             st = st,
             set_desc = hints.set_desc,
             illustration = hints.illustration,
@@ -88,8 +89,8 @@ impl TableFunction for Shaped {
             "Shaped transaction views",
         );
         tags.push((
-            "vgi.result_columns_md".into(),
-            crate::meta::result_columns_md(&self.output_schema()),
+            "vgi.result_columns_schema".into(),
+            crate::meta::result_columns_schema(&self.output_schema()),
         ));
         let examples = match example_for(st) {
             Some((select, body)) => vec![crate::meta::table_example(
@@ -104,6 +105,12 @@ impl TableFunction for Shaped {
             )],
             None => Vec::new(),
         };
+        if !examples.is_empty() {
+            tags.push((
+                "vgi.example_queries".into(),
+                crate::meta::example_queries_tag(&examples),
+            ));
+        }
         FunctionMetadata {
             description: format!("Shaped positional view of X12 transaction set {st}"),
             examples,

@@ -23,10 +23,10 @@ crates/
   x12-worker/      thin Arrow adapter over x12-core
     src/
       main.rs         Worker::new(); register scalars + tables; set_catalog; run
-      meta.rs         object_tags / keywords_json / result_columns_md helpers
+      meta.rs         object_tags / keywords_json / result_columns_schema / example helpers
       arrow_io.rs     Cell enum + generic schema-driven build_batch; scalar cell reads
       source.rs       path|text|bytes input resolution + the 5 envelope-key columns
-      scalar/         x12_version, delimiters, transaction_type
+      scalar/         delimiters, transaction_type
       table/          segments, segments_elements, envelope, edifact, shaped (registry-driven)
 ```
 
@@ -52,9 +52,10 @@ extractor in core, declare the output schema + metadata in a `table/` module.
   trailer leaves an `Option` `None` and surfaces as a NULL validity flag. A
   non-existent file *path* IS a legitimate error; malformed *content* is not.
 - **Metadata.** Every function needs title/doc_llm/doc_md/keywords
-  (`meta::object_tags`) and table functions need a `vgi.result_columns_md` tag
-  (`meta::result_columns_md(&schema)`) — VGI307. Argument descriptions must NOT
-  restate the data type — VGI313.
+  (`meta::object_tags`), a described `vgi.example_queries` JSON tag
+  (`meta::example_queries_tag`) — VGI515, and table functions need a
+  `vgi.result_columns_schema` JSON tag (`meta::result_columns_schema(&schema)`) —
+  VGI307. Argument descriptions must NOT restate the data type — VGI313.
 
 ## HARD RULE — licensing / IP
 
