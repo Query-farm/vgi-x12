@@ -120,6 +120,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
         implementation_version: Some(x12_core::version().to_string()),
         schemas: vec![CatSchema {
             name: "main".to_string(),
+            path: Vec::new(),
             comment: Some(
                 "X12 / EDIFACT parsing functions: generic segment/element explode, envelope \
                  metadata, shaped healthcare/B2B views, and delimiter/type sniffers."
@@ -287,7 +288,8 @@ fn transaction_sets_view() -> CatView {
 
 /// The `vgi.agent_test_tasks` suite: at least one deterministic task per catalog
 /// object (VGI520), each embedding its own inline interchange so the simulated
-/// analyst can reproduce a single canonical answer.
+/// analyst can reproduce a single canonical answer. The graders (`reference_sql`
+/// and the result-compare relaxations) live in `vgi-agent-tests.yaml` (VGI416).
 fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
     use crate::meta::{edifact_task, example_interchange, table_task, AgentTask, EXAMPLE_EDIFACT};
 
@@ -333,11 +335,6 @@ fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
                 "Sniff the element separator character used by this ISA header string: '{isa}'. \
                  Return one row with a single column named element_sep."
             ),
-            reference_sql: format!(
-                "SELECT (x12.main.delimiters('{isa}')).element AS element_sep"
-            ),
-            unordered: true,
-            ignore_column_names: true,
         },
         AgentTask {
             name: "detect_transaction_type".to_string(),
@@ -346,114 +343,80 @@ fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
                  inline-content support (do not write it to a file): '{env_835}'. Return one \
                  column named tx_type."
             ),
-            reference_sql: format!(
-                "SELECT x12.main.transaction_type('{env_835}') AS tx_type"
-            ),
-            unordered: true,
-            ignore_column_names: true,
         },
         AgentTask {
             name: "list_shaped_transaction_sets".to_string(),
             prompt: "Using the transaction_sets reference view, which shaped read_* function \
                      parses X12 transaction set 835? Return its shaped_function."
                 .to_string(),
-            reference_sql:
-                "SELECT shaped_function FROM x12.main.transaction_sets WHERE transaction_set = '835'"
-                    .to_string(),
-            unordered: true,
-            ignore_column_names: true,
         },
         table_task(
             "count_segments",
             "Count the segments in the interchange. Return one column named n.",
-            "segments",
-            "count(*) AS n",
             &env_837,
         ),
         table_task(
             "count_elements",
             "Count the exploded elements in the interchange. Return one column named n.",
-            "segments_elements",
-            "count(*) AS n",
             &env_837,
         ),
         table_task(
             "check_envelope",
             "Report the transaction type and whether the SE segment count validates. Return \
              columns transaction_type and se_count_ok.",
-            "envelope",
-            "transaction_type, se_count_ok",
             &env_837,
         ),
         table_task(
             "shaped_835_claims",
             "Project the claim ids and total-paid amounts from the 835 remittance interchange. \
              Return columns clp_claim_id and clp_total_paid.",
-            "read_835",
-            "clp_claim_id, clp_total_paid",
             &env_835,
         ),
         table_task(
             "shaped_837_claims",
             "Project the billing provider NPI and subscriber id from the 837 claim interchange. \
              Return columns billing_provider_npi and subscriber_id.",
-            "read_837",
-            "billing_provider_npi, subscriber_id",
             &env_837,
         ),
         table_task(
             "shaped_270_inquiry",
             "Project the hierarchical-level ids and level codes from the 270 inquiry. Return \
              columns hl_id and hl_level_code.",
-            "read_270",
-            "hl_id, hl_level_code",
             &env_270,
         ),
         table_task(
             "shaped_271_response",
             "Project the hierarchical-level ids and plan descriptions from the 271 response. \
              Return columns hl_id and eb_plan_description.",
-            "read_271",
-            "hl_id, eb_plan_description",
             &env_271,
         ),
         table_task(
             "shaped_850_po",
             "Project the purchase-order line numbers and product ids from the 850. Return \
              columns po1_line_number and po1_product_id.",
-            "read_850",
-            "po1_line_number, po1_product_id",
             &env_850,
         ),
         table_task(
             "shaped_997_ack",
             "Project the acknowledged transaction control numbers and their statuses from the \
              997. Return columns ak2_transaction_control and ak5_status.",
-            "read_997",
-            "ak2_transaction_control, ak5_status",
             &env_997,
         ),
         table_task(
             "shaped_999_ack",
             "Project the acknowledged transaction control numbers and their statuses from the \
              999. Return columns ak2_transaction_control and ik5_status.",
-            "read_999",
-            "ak2_transaction_control, ik5_status",
             &env_999,
         ),
         edifact_task(
             "edifact_explode",
             "Explode the EDIFACT interchange and project each segment tag and value. Return \
              columns segment_id and value.",
-            "edifact_segments",
-            "segment_id, value",
             EXAMPLE_EDIFACT,
         ),
         edifact_task(
             "edifact_summary",
             "Summarize the EDIFACT interchange and return its message transaction_type.",
-            "edifact_envelope",
-            "transaction_type",
             EXAMPLE_EDIFACT,
         ),
     ]

@@ -20,73 +20,44 @@ pub fn keywords_json(keywords: &str) -> String {
     format!("[{}]", items.join(","))
 }
 
-/// One analyst task in the `vgi.agent_test_tasks` suite: a `name`, the `prompt`
-/// shown to the simulated analyst, the canonical `reference_sql`, and the two
-/// result-comparison relaxations the grader honors — `unordered` (row order is
-/// insignificant) and `ignore_column_names` (compare VALUES only, not column
-/// labels). Keeping these explicit per task makes each reference deterministic
-/// under the linter's strict result compare.
+/// One analyst task in the `vgi.agent_test_tasks` suite: a `name` and the
+/// `prompt` shown to the simulated analyst. Only this public half is published
+/// in the catalog tag; each task's grader (`reference_sql` plus the
+/// `unordered` / `ignore_column_names` result-compare relaxations) lives in
+/// `vgi-agent-tests.yaml` at the repo root, keyed by task name, so the agent
+/// being graded never sees it (VGI416).
 pub struct AgentTask {
     pub name: String,
     pub prompt: String,
-    pub reference_sql: String,
-    pub unordered: bool,
-    pub ignore_column_names: bool,
 }
 
-/// Build one agent test task whose `reference_sql` runs
-/// `SELECT <select> FROM x12.main.<fn_name>('<interchange>')` over an inline X12
-/// interchange, with a prompt that embeds the same interchange so the simulated
-/// analyst can reproduce the exact single answer. `interchange` must be X12
-/// (its `*`/`~`/`:`/`^` delimiters carry no single quote, so it embeds directly
-/// in the SQL string literal).
-pub fn table_task(
-    name: &str,
-    ask: &str,
-    fn_name: &str,
-    select: &str,
-    interchange: &str,
-) -> AgentTask {
+/// Build one agent test task over an inline X12 `interchange`, with a prompt
+/// that embeds the interchange so the simulated analyst can reproduce the exact
+/// single answer (graded by its `reference_sql` in `vgi-agent-tests.yaml`).
+pub fn table_task(name: &str, ask: &str, interchange: &str) -> AgentTask {
     AgentTask {
         name: name.to_string(),
         prompt: format!(
             "{ask} Use the worker's inline-content support (do not write it to a file) over this \
              X12 interchange: '{interchange}'."
         ),
-        reference_sql: format!("SELECT {select} FROM x12.main.{fn_name}('{interchange}')"),
-        unordered: true,
-        ignore_column_names: true,
     }
 }
 
-/// Like [`table_task`] but for a UN/EDIFACT `interchange`, whose `'` segment
-/// terminator is doubled for the SQL string literal (the prompt keeps it raw).
-pub fn edifact_task(
-    name: &str,
-    ask: &str,
-    fn_name: &str,
-    select: &str,
-    interchange: &str,
-) -> AgentTask {
+/// Like [`table_task`] but for a UN/EDIFACT `interchange` (the prompt keeps its
+/// `'` segment terminators raw).
+pub fn edifact_task(name: &str, ask: &str, interchange: &str) -> AgentTask {
     AgentTask {
         name: name.to_string(),
         prompt: format!(
             "{ask} Use the worker's inline-content support (do not write it to a file) over this \
              UN/EDIFACT interchange: '{interchange}'."
         ),
-        reference_sql: format!(
-            "SELECT {select} FROM x12.main.{fn_name}('{}')",
-            interchange.replace('\'', "''")
-        ),
-        unordered: true,
-        ignore_column_names: true,
     }
 }
 
-/// Build the `vgi.agent_test_tasks` JSON value: a fixed suite of analyst tasks
-/// that `vgi-lint simulate` runs. Each [`AgentTask`] becomes a task object,
-/// emitting the `unordered` / `ignore_column_names` grading flags so a
-/// single-answer prompt grades deterministically.
+/// Build the `vgi.agent_test_tasks` JSON value: the public `name` + `prompt` of
+/// each task in the fixed suite that `vgi-lint simulate` runs.
 pub fn agent_test_tasks_json(tasks: &[AgentTask]) -> String {
     fn esc(s: &str) -> String {
         s.replace('\\', "\\\\")
@@ -97,13 +68,9 @@ pub fn agent_test_tasks_json(tasks: &[AgentTask]) -> String {
         .iter()
         .map(|t| {
             format!(
-                "{{\"name\":\"{}\",\"prompt\":\"{}\",\"reference_sql\":\"{}\",\
-                 \"unordered\":{},\"ignore_column_names\":{}}}",
+                "{{\"name\":\"{}\",\"prompt\":\"{}\"}}",
                 esc(&t.name),
                 esc(&t.prompt),
-                esc(&t.reference_sql),
-                t.unordered,
-                t.ignore_column_names,
             )
         })
         .collect();

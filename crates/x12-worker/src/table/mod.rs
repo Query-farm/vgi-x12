@@ -68,6 +68,10 @@ impl RowsProducer {
 }
 
 impl TableProducer for RowsProducer {
+    // The row set is rebuilt deterministically from the bind arguments, so only
+    // the pagination cursor must survive an HTTP turn (lock-step resume).
+    vgi::resume_fields!(cursor);
+
     fn next_batch(&mut self, _out: &mut OutputCollector) -> Result<Option<RecordBatch>> {
         self.take_batch()
     }

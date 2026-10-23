@@ -1,0 +1,69 @@
+# Private graders for the agent-suitability suite (`vgi-lint simulate`).
+#
+# The prompts are published in the catalog's vgi.agent_test_tasks tag
+# (agent_test_tasks() in crates/x12-worker/src/main.rs); the answers live
+# here, keyed by task name, so the agent being graded never sees them (VGI416).
+# vgi-lint discovers this file in the repo root. Every reference parses an
+# inline interchange, so the suite needs no network access or data files.
+
+tasks:
+  - name: "sniff_element_separator"
+    reference_sql: "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep"
+    unordered: true
+    ignore_column_names: true
+  - name: "detect_transaction_type"
+    reference_sql: "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~SVC*HC:99213*200*160**1~DTM*232*20240110~CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~SE*11*0001~GE*1*1~IEA*1*000000001~') AS tx_type"
+    unordered: true
+    ignore_column_names: true
+  - name: "list_shaped_transaction_sets"
+    reference_sql: "SELECT shaped_function FROM x12.main.transaction_sets WHERE transaction_set = '835'"
+    unordered: true
+    ignore_column_names: true
+  - name: "count_segments"
+    reference_sql: "SELECT count(*) AS n FROM x12.main.segments('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "count_elements"
+    reference_sql: "SELECT count(*) AS n FROM x12.main.segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "check_envelope"
+    reference_sql: "SELECT transaction_type, se_count_ok FROM x12.main.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_835_claims"
+    reference_sql: "SELECT clp_claim_id, clp_total_paid FROM x12.main.read_835('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~SVC*HC:99213*200*160**1~DTM*232*20240110~CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_837_claims"
+    reference_sql: "SELECT billing_provider_npi, subscriber_id FROM x12.main.read_837('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_270_inquiry"
+    reference_sql: "SELECT hl_id, hl_level_code FROM x12.main.read_270('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*270*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*1*TRACE70*9999999999~EQ*30~SE*10*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_271_response"
+    reference_sql: "SELECT hl_id, eb_plan_description FROM x12.main.read_271('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*271*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*2*TRACE55*9999999999~EB*1*IND*30**GOLD PPO~EB*B*IND*30****27.5~DTP*291*D8*20240101~SE*12*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_850_po"
+    reference_sql: "SELECT po1_line_number, po1_product_id FROM x12.main.read_850('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*850*0001~BEG*00*SA*PO9988**20240101~N1*ST*ACME WAREHOUSE*92*DC07~PER*BD*JANE BUYER*TE*5551234~PO1*1*10*EA*4.50**VP*WIDGET-A~PO1*2*5*EA*9.99**VP*WIDGET-B~SE*7*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_997_ack"
+    reference_sql: "SELECT ak2_transaction_control, ak5_status FROM x12.main.read_997('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*997*0001~AK1*HC*1~AK2*837*0001~AK3*CLM*22**8~AK4*1*1028*1~AK5*E~AK2*837*0002~AK5*A~AK9*P*2*2*1~SE*10*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "shaped_999_ack"
+    reference_sql: "SELECT ak2_transaction_control, ik5_status FROM x12.main.read_999('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*999*0001~AK1*HC*1~AK2*837*0001~IK3*NM1*8**8~IK4*2*1037*7~IK5*R~AK9*R*1*1*0~SE*8*0001~GE*1*1~IEA*1*000000001~')"
+    unordered: true
+    ignore_column_names: true
+  - name: "edifact_explode"
+    reference_sql: "SELECT segment_id, value FROM x12.main.edifact_segments('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')"
+    unordered: true
+    ignore_column_names: true
+  - name: "edifact_summary"
+    reference_sql: "SELECT transaction_type FROM x12.main.edifact_envelope('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')"
+    unordered: true
+    ignore_column_names: true

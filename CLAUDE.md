@@ -4,7 +4,7 @@ Guidance for working in this repo.
 
 ## What this is
 
-A VGI worker (Rust, the published `vgi` SDK 0.9.5 / `vgi-rpc` 0.7 / arrow 59)
+A VGI worker (Rust, the published `vgi` SDK 0.46 / `vgi-rpc` 0.32 / arrow 60)
 that parses ANSI ASC X12 EDI and UN/EDIFACT interchanges into queryable rows for
 DuckDB over Apache Arrow. DuckDB `ATTACH 'x12' (TYPE vgi, COMMAND 'x12-worker')`.
 
