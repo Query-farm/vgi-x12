@@ -11,7 +11,7 @@
 #   make fmt          # rustfmt the workspace
 #
 # The SQL E2E suite drives the compiled worker through DuckDB via
-# `haybarn-unittest` (install with: `uv tool install haybarn-unittest`).
+# `haybarn-unittest` (install with: `uv tool install 'haybarn-unittest<2'`).
 
 WORKER         ?= $(CURDIR)/target/release/x12-worker
 SQL_RUNNER     ?= haybarn-unittest
