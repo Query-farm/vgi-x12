@@ -30,6 +30,9 @@ set -euo pipefail
 TRANSPORT="${TRANSPORT:-subprocess}"
 
 : "${HAYBARN_UNITTEST:?path to the haybarn-unittest binary}"
+# haybarn-unittest 2.0 isolates $HOME per run; --keep-home keeps the vgi
+# extension installed by the warm step visible to the suite.
+HB_ARGS=(--keep-home)
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
@@ -128,16 +131,16 @@ cat > "$STAGE/test/_warm.test" <<'EOF'
 # name: test/_warm.test
 # group: [warm]
 statement ok
-INSTALL vgi FROM community;
+FORCE INSTALL vgi FROM community;
 EOF
-"$HAYBARN_UNITTEST" "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
+"$HAYBARN_UNITTEST" "${HB_ARGS[@]}" "test/_warm.test" >/dev/null 2>&1 || echo "::warning::extension warm step did not fully succeed"
 rm -f "$STAGE/test/_warm.test"
 
 TEST_PATTERN="${TEST_PATTERN:-test/sql/*}"
 echo "Running suite (transport: $TRANSPORT, worker: $VGI_X12_WORKER, pattern: $TEST_PATTERN) ..."
 REPORT="$STAGE/.report.txt"
 set +e
-"$HAYBARN_UNITTEST" "$TEST_PATTERN" 2>&1 | tee "$REPORT"
+"$HAYBARN_UNITTEST" "${HB_ARGS[@]}" "$TEST_PATTERN" 2>&1 | tee "$REPORT"
 status="${PIPESTATUS[0]}"
 set -e
 if grep -qiE "All tests were skipped|total skipped [1-9]" "$REPORT"; then

@@ -283,6 +283,7 @@ fn transaction_sets_view() -> CatView {
                     .to_string(),
             ),
         ],
+        ..Default::default()
     }
 }
 

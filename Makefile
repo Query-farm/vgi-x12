@@ -11,7 +11,7 @@
 #   make fmt          # rustfmt the workspace
 #
 # The SQL E2E suite drives the compiled worker through DuckDB via
-# `haybarn-unittest` (install with: `uv tool install 'haybarn-unittest<2'`).
+# `haybarn-unittest` (install with: `uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'`).
 
 WORKER         ?= $(CURDIR)/target/release/x12-worker
 SQL_RUNNER     ?= haybarn-unittest
@@ -41,7 +41,7 @@ lint:
 
 # Metadata-quality gate (same rule set CI runs via Query-farm/vgi-lint-check).
 vgi-lint: build
-	uvx --from vgi-lint-check vgi-lint lint "$(WORKER)" --fail-on info
+	uvx --prerelease allow --from 'vgi-lint-check>=2.0.1' vgi-lint lint "$(WORKER)" --fail-on info
 
 fmt:
 	cargo fmt --all
