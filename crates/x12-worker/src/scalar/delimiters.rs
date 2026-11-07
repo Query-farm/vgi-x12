@@ -73,6 +73,7 @@ impl ScalarFunction for DelimitersFn {
                 .into(),
             examples,
             tags,
+            return_type: Some(DataType::Struct(delimiters_struct_fields())),
             ..Default::default()
         }
     }
