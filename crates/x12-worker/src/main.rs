@@ -41,9 +41,12 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 .to_string(),
         ),
         tags: vec![
+            ("vgi.title".to_string(), "X12 EDI".to_string()),
             (
-                "vgi.title".to_string(),
-                "X12 / EDIFACT EDI Parser".to_string(),
+                "vgi.subtitle".to_string(),
+                "Query X12 and EDIFACT interchanges as segment, envelope and claim rows, \
+                 parsed locally."
+                    .to_string(),
             ),
             (
                 "vgi.keywords".to_string(),
@@ -127,7 +130,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             tags: vec![
-                ("vgi.title".to_string(), "x12 — main".to_string()),
+                ("vgi.title".to_string(), "EDI functions".to_string()),
                 (
                     "vgi.keywords".to_string(),
                     crate::meta::keywords_json(
