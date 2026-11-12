@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/x12-core", "crates/x12-worker"]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT"
@@ -17,8 +17,8 @@ repository = "https://github.com/Query-farm/vgi-x12"
 # Default features minus `sqlite`: the stateless parser needs no SQLite-backed
 # shared storage (the SDK falls back to its `fs` backend), and dropping it removes
 # the bundled C SQLite (libsqlite3-sys, RUSTSEC-2026-0459) from the tree.
-vgi = { version = "0.50.0", default-features = false, features = ["transport-http", "catalog-publication"] }
-vgi-rpc = { version = "0.32.3", default-features = false, features = ["macros", "http"] }
+vgi = { version = "0.51.0", default-features = false, features = ["transport-http", "catalog-publication"] }
+vgi-rpc = { version = "0.32.4", default-features = false, features = ["macros", "http"] }
 arrow-array = "59.2"
 arrow-buffer = "59.2"
 arrow-schema = "59.2"
