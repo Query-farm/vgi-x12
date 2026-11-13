@@ -28,6 +28,7 @@ pub mod delimiters;
 pub mod edifact;
 pub mod envelope;
 pub mod segment;
+pub mod serialization;
 pub mod shaped;
 
 pub use delimiters::Delimiters;

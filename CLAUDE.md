@@ -4,7 +4,7 @@ Guidance for working in this repo.
 
 ## What this is
 
-A VGI worker (Rust, the published `vgi` SDK 0.49.2 / `vgi-rpc` 0.32.3 / arrow 59)
+A VGI worker (Rust, the published `vgi` SDK 0.51 / `vgi-rpc` 0.32.4 / arrow 59)
 that parses ANSI ASC X12 EDI and UN/EDIFACT interchanges into queryable rows for
 DuckDB over Apache Arrow. DuckDB `ATTACH 'x12' (TYPE vgi, COMMAND 'x12-worker')`.
 
@@ -16,6 +16,7 @@ crates/
     src/
       delimiters.rs   ISA fixed-width sniff + EDIFACT UNA; Family detection
       segment.rs      Segment row model + delimiter-driven split (release-char aware)
+      serialization.rs complete X12 segments + strict incremental text writer
       envelope.rs     ISA/GS/ST nesting walk, control numbers, SE/GE/IEA validation
       edifact.rs      UNB/UNG/UNH variant + release-char un-escape
       shaped/         positional extractors: t835, t837, t270_271, t850, acks (997/999)
@@ -26,6 +27,7 @@ crates/
       meta.rs         object_tags / keywords_json / result_columns_schema / example helpers
       arrow_io.rs     Cell enum + generic schema-driven build_batch; scalar cell reads
       source.rs       path|text|bytes input resolution + the 5 envelope-key columns
+      copy.rs         X12 COPY FROM/TO adapters; ordered shared-storage shards
       scalar/         delimiters, transaction_type
       table/          segments, segments_elements, envelope, edifact, shaped (registry-driven)
 ```
@@ -51,6 +53,12 @@ extractor in core, declare the output schema + metadata in a `table/` module.
 - **Robustness.** Parsing is total — never panic on arbitrary bytes; a missing
   trailer leaves an `Option` `None` and surfaces as a NULL validity flag. A
   non-existent file *path* IS a legitimate error; malformed *content* is not.
+- **X12 writing.** `read_x12` is the complete COPY representation; its segment
+  index spans the document and includes envelope rows. Existing `segments` keeps
+  its ST–SE-only contract. COPY TO is strict: validate complete ASCII envelopes,
+  preserve control numbers, and recalculate counts only when explicitly requested.
+  Stage batches in execution-scoped VGI storage, preserve query order, and publish
+  a temporary file only after successful validation. No EDIFACT or BIN output.
 - **Metadata.** Every function needs title/doc_llm/doc_md/keywords
   (`meta::object_tags`), a described `vgi.example_queries` JSON tag
   (`meta::example_queries_tag`) — VGI515, and table functions need a

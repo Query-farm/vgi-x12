@@ -8,6 +8,7 @@
 
 pub mod edifact;
 pub mod envelope;
+pub mod read_x12;
 pub mod segments;
 pub mod segments_elements;
 pub mod shaped;
@@ -25,6 +26,7 @@ const BATCH_ROWS: usize = 2048;
 
 /// Register every table function on the worker.
 pub fn register(worker: &mut Worker) {
+    worker.register_table(read_x12::ReadX12);
     worker.register_table(segments::Segments);
     worker.register_table(segments_elements::SegmentsElements);
     worker.register_table(envelope::Envelope);

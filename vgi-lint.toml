@@ -10,10 +10,16 @@
 # separately against the committed `data/` fixtures by the repo's SQLLogic E2E
 # (make test-sql).
 #
-# All static metadata rules (titles, per-arg docs, keywords, source_url, tags)
-# remain enabled and the whole suite gates at `info`.
+# Static metadata rules remain enabled and the suite gates at `info`, with two
+# narrowly scoped exceptions for the SDK's COPY-only adapter (see below).
 [tool.vgi-lint-check]
 select = ["ALL"]
 ignore = []
 fail_on = "info"
+
+[tool.vgi-lint-check.per_object."x12.main.copy_x12"]
+ignore = [
+  { code = "VGI311", kind = "domain-exemption", reason = "The SDK exposes COPY FROM as a parameterless table handler, but its source path comes from COPY context. Direct invocation is deliberately rejected; it cannot be a browsable regular table." },
+  { code = "VGI504", kind = "tooling-bug", reason = "COPY handlers cannot be called directly. Their executable discovery example filters vgi_copy_formats by handler name; actual FROM/TO behavior is tested in test/sql/copy.test on all transports." },
+]
 

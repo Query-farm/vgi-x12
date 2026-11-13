@@ -38,6 +38,11 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
 STAGE="${STAGE:-$(mktemp -d)}"
 
+# COPY paths must resolve identically in DuckDB and worker processes, including
+# the HTTP/unix servers launched before the runner changes its working directory.
+mkdir -p "$STAGE/copy-output"
+export VGI_X12_OUTPUT="$(cd "$STAGE/copy-output" && pwd)"
+
 # The committed fixtures live in <repo>/data; the path-mode test/sql/files.test
 # resolves them via this absolute path, so it works from the staged CWD too.
 export VGI_X12_DATA="$REPO/data"
@@ -143,7 +148,7 @@ set +e
 "$HAYBARN_UNITTEST" "${HB_ARGS[@]}" "$TEST_PATTERN" 2>&1 | tee "$REPORT"
 status="${PIPESTATUS[0]}"
 set -e
-if grep -qiE "All tests were skipped|total skipped [1-9]" "$REPORT"; then
+if grep -qiE "All tests were skipped|total skipped [1-9]|[1-9][0-9]* skipped test" "$REPORT"; then
   echo "ERROR: tests were SKIPPED — almost certainly an ATTACH/transport error whose" >&2
   echo "       message matched the runner's default ignore list (e.g. \"HTTP\"). A skip" >&2
   echo "       is NOT a pass. Transport=$TRANSPORT worker=$VGI_X12_WORKER." >&2

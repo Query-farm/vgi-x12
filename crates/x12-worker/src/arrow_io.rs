@@ -111,8 +111,10 @@ fn build_column(ty: &DataType, rows: &[Vec<Cell>], c: usize) -> Result<ArrayRef>
             }
             Ok(Arc::new(b.finish()))
         }
-        DataType::List(_) => {
-            let mut b = ListBuilder::new(StringBuilder::new());
+        DataType::List(field) => {
+            // COPY FROM supplies DuckDB's target schema, whose list child may
+            // be named "l" rather than Arrow's default "item".
+            let mut b = ListBuilder::new(StringBuilder::new()).with_field(field.clone());
             for row in rows {
                 match &row[c] {
                     Cell::StrList(items) => {
@@ -203,6 +205,7 @@ pub mod test_support {
             tablesample_percentage: None,
             tablesample_seed: None,
             attach_opaque_data: None,
+            transaction_opaque_data: None,
             at_unit: None,
             at_value: None,
             copy_from: None,

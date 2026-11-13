@@ -150,7 +150,7 @@ fn string_args(args: &Arguments, pos: usize) -> Result<Vec<String>> {
 
 /// Expand a local path spec to a sorted list of files. A glob expands (possibly
 /// to nothing — zero rows, not an error); a literal path must exist.
-fn expand_local(spec: &str) -> Result<Vec<String>> {
+pub(crate) fn expand_local(spec: &str) -> Result<Vec<String>> {
     if spec.contains('*') || spec.contains('?') || spec.contains('[') {
         let mut out = Vec::new();
         let entries = glob::glob(spec).map_err(|e| ve(format!("bad glob '{spec}': {e}")))?;

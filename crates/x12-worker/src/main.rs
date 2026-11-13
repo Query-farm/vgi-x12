@@ -20,6 +20,7 @@
 //! thin Arrow adapters over it.
 
 mod arrow_io;
+mod copy;
 mod meta;
 mod scalar;
 mod source;
@@ -43,8 +44,9 @@ fn catalog_metadata(name: &str) -> CatalogModel {
         tags: vec![
             (
                 "vgi.title".to_string(),
-                "X12 / EDIFACT EDI Parser".to_string(),
+                "EDI".to_string(),
             ),
+            ("vgi.subtitle".to_string(), "Inspect and edit healthcare and business interchanges without moving data off your machine.".to_string()),
             (
                 "vgi.keywords".to_string(),
                 crate::meta::keywords_json(
@@ -63,7 +65,9 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                  eligibility, 850 purchase order, 997/999 acknowledgements). Parsing is 100% local \
                  — no outbound calls — which suits PHI/PII workloads. Ships public X12 syntax only; \
                  raw codes are surfaced verbatim and code-value translation needs the user's own \
-                 licensed X12 reference."
+                 licensed X12 reference. Use read_x12 for complete envelope/body segments and \
+                 COPY FROM/TO FORMAT '<alias>.x12' for local X12 text round trips. COPY TO \
+                 requires ordered rows and validates envelopes before publishing output."
                     .to_string(),
             ),
             (
@@ -92,7 +96,14 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                  **Data residency.** Parsing is 100% local with no outbound calls — a feature for \
                  PHI/PII workloads. Ships **public X12 syntax only**: it embeds no copyrighted ASC \
                  X12 TR3 implementation-guide content, so human-readable code-value translation \
-                 needs your own licensed X12 reference."
+                 needs your own licensed X12 reference.\n\n\
+                 **X12 round trips.** `read_x12(input)` retains all envelope and body segments, \
+                 positional elements, document/segment order, and per-interchange delimiters. \
+                 The alias-scoped `x12.x12` COPY format imports/exports that representation using \
+                 worker-local paths. Order output by `document_index, segment_index`. The writer \
+                 requires complete ASCII envelopes and checks counts and control numbers; \
+                 `recalculate_counts true` updates trailer counts after edits. Formatting \
+                 whitespace is normalized. EDIFACT output and binary payloads are unsupported."
                     .to_string(),
             ),
             (
@@ -127,11 +138,11 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     .to_string(),
             ),
             tags: vec![
-                ("vgi.title".to_string(), "x12 — main".to_string()),
+                ("vgi.title".to_string(), "EDI functions".to_string()),
                 (
                     "vgi.keywords".to_string(),
                     crate::meta::keywords_json(
-                        "x12, edi, edifact, segments, segments_elements, envelope, read_835, \
+                        "x12, edi, edifact, read_x12, copy, segments, segments_elements, envelope, read_835, \
                          read_837, read_270, read_271, read_850, read_997, read_999, \
                          edifact_segments, edifact_envelope, transaction_sets, delimiters, \
                          transaction_type",
@@ -145,7 +156,9 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     "X12 / EDIFACT parsing functions: explode interchanges into segment/element \
                      rows, summarize the ISA/GS/ST envelope with structural validity flags, \
                      project shaped relational views for 835/837/270/271/850/997/999, and sniff \
-                     delimiters / transaction type from inline content."
+                     delimiters / transaction type from inline content. read_x12 exposes every \
+                     envelope/body segment for COPY FROM/TO FORMAT '<alias>.x12'; COPY TO \
+                     validates ordered ASCII output and supports explicit count recalculation."
                         .to_string(),
                 ),
                 (
@@ -357,6 +370,11 @@ fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
             &env_837,
         ),
         table_task(
+            "count_complete_segments",
+            "Count every segment in the complete interchange, including ISA, GS, GE, and IEA. Return one column named n.",
+            &env_837,
+        ),
+        table_task(
             "count_elements",
             "Count the exploded elements in the interchange. Return one column named n.",
             &env_837,
@@ -440,6 +458,7 @@ fn main() {
     let mut worker = Worker::new();
     scalar::register(&mut worker);
     table::register(&mut worker);
+    copy::register(&mut worker);
     worker.set_catalog(catalog_metadata(&catalog_name));
     worker.run();
 }

@@ -4,6 +4,21 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
+## Unreleased
+
+- Update the VGI SDK to 0.51 (protocol 3.3) for compatibility with the community
+  extension used by the integration and metadata gates.
+
+- Add `read_x12(input)`, a complete segment representation including ISA/GS/GE/IEA,
+  per-document ordering, offsets, and per-interchange delimiters.
+- Add `COPY FROM` and ordered `COPY TO` with `FORMAT '<attach_alias>.x12'`.
+  The writer validates complete ASCII envelopes, fixed-width ISA, delimiters,
+  counts, and control numbers before atomically publishing worker-local output.
+- Add opt-in `recalculate_counts` for SE01/GE01/IEA01 after edits. Control numbers
+  and positional values are preserved; inter-segment whitespace is normalized.
+- Cover fixture round trips, mixed delimiters, malformed output, atomic failure,
+  shared-storage handoff, and multi-batch COPY over all three transports.
+
 ## 0.1.0 — unreleased
 
 Initial release. A VGI worker that parses ANSI ASC X12 EDI and UN/EDIFACT

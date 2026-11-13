@@ -1,0 +1,158 @@
+# name: test/sql/copy.test
+# group: [vgi_x12]
+# Complete segments, COPY import/export, strict validation, and multi-batch order.
+
+# Transport errors must fail, rather than silently skipping the remaining checks.
+set ignore_error_messages
+
+require-env VGI_X12_WORKER
+
+require-env VGI_X12_DATA
+
+require-env VGI_X12_OUTPUT
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+statement ok
+SET threads = 8;
+
+query TTT
+SELECT DISTINCT format_name, direction, ordered::VARCHAR FROM vgi_copy_formats() WHERE catalog_name = 'x12';
+----
+x12.x12	both	true
+
+statement ok
+CREATE TABLE edi AS SELECT * FROM x12.read_x12('${VGI_X12_DATA}/era_835.835') LIMIT 0;
+
+query I
+COPY edi FROM '${VGI_X12_DATA}/era_835.835' (FORMAT 'x12.x12');
+----
+15
+
+query TTT
+SELECT segment_id, group_ctrl, transaction_ctrl FROM edi WHERE segment_id IN ('ISA', 'GS', 'ST', 'SE', 'GE', 'IEA') ORDER BY segment_index;
+----
+ISA	NULL	NULL
+GS	1	NULL
+ST	1	0001
+SE	1	0001
+GE	1	NULL
+IEA	NULL	NULL
+
+query I
+COPY (SELECT * FROM edi ORDER BY document_index, segment_index) TO '${VGI_X12_OUTPUT}/roundtrip.edi' (FORMAT 'x12.x12');
+----
+15
+
+query I
+SELECT count(*) FROM ((SELECT segment_index, segment_id, elements, element_separator, segment_terminator FROM edi) EXCEPT ALL (SELECT segment_index, segment_id, elements, element_separator, segment_terminator FROM x12.read_x12('${VGI_X12_OUTPUT}/roundtrip.edi')));
+----
+0
+
+# Count changes are opt-in. A failure must leave the previous file intact.
+statement error
+COPY (SELECT * FROM edi WHERE segment_id <> 'BPR' ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/roundtrip.edi' (FORMAT 'x12.x12');
+----
+SE01 count
+
+query I
+SELECT count(*) FROM x12.read_x12('${VGI_X12_OUTPUT}/roundtrip.edi');
+----
+15
+
+query I
+COPY (SELECT * FROM edi WHERE segment_id <> 'BPR' ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/edited.edi' (FORMAT 'x12.x12', recalculate_counts true);
+----
+14
+
+query TTT
+SELECT se_count_ok, ge_count_ok, iea_count_ok FROM x12.envelope('${VGI_X12_OUTPUT}/edited.edi');
+----
+true	true	true
+
+statement error
+COPY (SELECT * REPLACE (CASE WHEN segment_id = 'SE' THEN ['11', 'wrong'] ELSE elements END AS elements) FROM edi ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/bad.edi' (FORMAT 'x12.x12', recalculate_counts true);
+----
+control number
+
+statement error
+COPY (SELECT * FROM edi WHERE segment_id <> 'IEA' ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/bad.edi' (FORMAT 'x12.x12');
+----
+incomplete X12 envelope
+
+statement error
+COPY (SELECT * REPLACE ([NULL]::VARCHAR[] AS elements) FROM edi ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/bad.edi' (FORMAT 'x12.x12');
+----
+must not contain NULL
+
+statement error
+COPY (SELECT * REPLACE (CASE WHEN segment_id = 'BPR' THEN ['bad*value'] ELSE elements END AS elements) FROM edi ORDER BY segment_index) TO '${VGI_X12_OUTPUT}/bad.edi' (FORMAT 'x12.x12');
+----
+without element/segment delimiters
+
+statement error
+COPY (SELECT 1 AS wrong) TO '${VGI_X12_OUTPUT}/bad.edi' (FORMAT 'x12.x12');
+----
+COPY TO X12 requires
+
+statement ok
+CREATE TABLE wrong_target (wrong VARCHAR);
+
+statement error
+COPY wrong_target FROM '${VGI_X12_DATA}/era_835.835' (FORMAT 'x12.x12');
+----
+COPY FROM X12 target must match
+
+# Source files with different delimiter sets can share one output file.
+query I
+COPY (SELECT * FROM x12.read_x12(['${VGI_X12_DATA}/era_835.835', '${VGI_X12_DATA}/pipe_delims.edi']) ORDER BY document_index, segment_index) TO '${VGI_X12_OUTPUT}/mixed.edi' (FORMAT 'x12.x12');
+----
+22
+
+query TT
+SELECT element_separator, elements[16] FROM x12.read_x12('${VGI_X12_OUTPUT}/mixed.edi') WHERE segment_id = 'ISA' ORDER BY segment_index;
+----
+*	:
+|	>
+
+query I
+COPY (SELECT * FROM edi WHERE false) TO '${VGI_X12_OUTPUT}/empty.edi' (FORMAT 'x12.x12');
+----
+0
+
+query I
+SELECT size FROM read_blob('${VGI_X12_OUTPUT}/empty.edi');
+----
+0
+
+# Each copy gets an identifying TRN02. Exercise multiple sink batches and a large import
+# and the ordered sink while DuckDB has eight execution threads available.
+query I
+COPY (
+ SELECT segment_id,
+        CASE WHEN segment_id = 'TRN' THEN list_transform(elements, lambda v, i: CASE WHEN i = 2 THEN n::VARCHAR ELSE v END) ELSE elements END AS elements,
+        element_separator, segment_terminator
+ FROM range(500) r(n) CROSS JOIN edi ORDER BY n, segment_index
+) TO '${VGI_X12_OUTPUT}/large.edi' (FORMAT 'x12.x12');
+----
+7500
+
+statement ok
+CREATE TABLE imported AS SELECT * FROM edi LIMIT 0;
+
+query I
+COPY imported FROM '${VGI_X12_OUTPUT}/large.edi' (FORMAT 'x12.x12');
+----
+7500
+
+query II
+SELECT count(*), count(*) FILTER (WHERE segment_index <> elements[2]::BIGINT * 15 + 4) FROM imported WHERE segment_id = 'TRN';
+----
+500	0
+
+statement ok
+DETACH x12;

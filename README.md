@@ -74,6 +74,7 @@ FROM x12.segments_elements('ISA*00*          *00*          *ZZ*S              *Z
 
 | function | kind | returns |
 | --- | --- | --- |
+| `read_x12(input)` | table | every envelope/body segment, envelope keys, document/segment order, positional `elements`, offsets, and delimiters; the COPY representation |
 | `segments(input)` | table | envelope keys + `segment_index`, `segment_id`, `elements LIST<VARCHAR>`, `byte_offset` |
 | `segments_elements(input)` | table | envelope keys + `segment_index`, `segment_id`, `element_index`, `component_index`, `repetition_index`, `value` |
 | `envelope(input)` | table | one row per ST: ISA/GS/ST metadata + `segment_count`, `se/ge/iea_count_ok`, `se/ge/iea_ctrl_match` |
@@ -90,6 +91,68 @@ FROM x12.segments_elements('ISA*00*          *00*          *ZZ*S              *Z
 
 The worker's build version is published as the catalog `implementation_version`
 (see `duckdb_databases()`), not as a scalar function.
+
+## X12 COPY import and export
+
+`FORMAT 'x12.x12'` supports both directions after attaching the worker as `x12`.
+The first part is the attach alias. Discover the format and its options with
+`SELECT * FROM vgi_copy_formats()`.
+
+`read_x12()` includes **every segment**, including ISA/GS/GE/IEA. It retains
+empty elements, ISA padding, composites and repetitions as unsplit element text.
+Its `segment_index` is document-wide; `document_index` distinguishes the inputs
+within one call. Envelope keys are NULL outside their respective scopes, with
+trailer rows retaining the keys of the scope they close.
+
+```sql
+-- Create the exact COPY FROM schema, then import a local file or glob.
+CREATE TABLE edi AS
+SELECT * FROM x12.read_x12('/data/input.edi') LIMIT 0;
+
+COPY edi FROM '/data/input.edi' (FORMAT 'x12.x12');
+
+-- Edit positional values without discarding unmodeled segments.
+UPDATE edi
+SET elements = list_transform(elements,
+    lambda value, position: CASE WHEN position = 1 THEN 'TEST_ACCOUNT' ELSE value END)
+WHERE segment_id = 'CLM';
+
+COPY (SELECT * FROM edi ORDER BY document_index, segment_index)
+TO '/data/output.edi' (FORMAT 'x12.x12');
+
+-- After adding/removing body segments or complete transactions/groups:
+COPY (SELECT * FROM edi ORDER BY document_index, segment_index)
+TO '/data/recounted.edi' (FORMAT 'x12.x12', recalculate_counts true);
+```
+
+COPY TO requires four columns by name: `segment_id VARCHAR`,
+`elements VARCHAR[]`, `element_separator VARCHAR`, and `segment_terminator VARCHAR`.
+Extra columns are ignored. Component and repetition separators are preserved in
+ISA16 and ISA11. Segment values are authoritative; editing the informational
+envelope-key columns does not change the output. Always supply an explicit
+`ORDER BY`; the writer preserves that order across batches. When appending
+multiple imports to a table, retain a separate import identifier in your staging
+workflow because `document_index` restarts for each invocation.
+
+Output validation checks nesting, fixed-width ISA fields, delimiter consistency,
+trailer counts, and matching control numbers. Invalid output fails the statement
+and leaves the destination unchanged. `recalculate_counts` updates only
+SE01/GE01/IEA01; it never assigns control numbers or creates missing envelopes.
+NULL writing columns and NULL list entries are rejected; use `''` for an empty
+element. An empty query writes an empty file.
+
+This is **ASCII X12 text serialization** with structural validation, not TR3
+content validation or acknowledgement generation. EDIFACT writing and BIN binary
+payloads are unsupported. Inter-segment formatting whitespace is normalized;
+byte-for-byte file reproduction is not promised. The existing `segments()`
+function includes only ST–SE rows, and shaped `read_*` views are projections;
+use `read_x12()` for complete round trips.
+
+Paths refer to the **worker's local filesystem**, including HTTP/unix workers;
+use absolute paths. Output is staged in a same-directory temporary file and
+published after successful validation. COPY FROM materializes its input into one
+Arrow batch (the SDK's HTTP COPY reader cannot resume); COPY TO stages Arrow batches in VGI's execution-scoped
+shared storage and encodes them in bounded batches. No outbound calls are added.
 
 ## How it works
 
@@ -110,8 +173,9 @@ and matching control numbers (`SE01`=count, `SE02`=ST02; `GE01`/`IEA01` likewise
 loops into **parent + child rows** keyed by shared envelope keys, and pivot `NM1`
 loops by their entity-identifier qualifier.
 
-Malformed or truncated input **never aborts the query**: parsing is total
+Malformed or truncated input **never aborts a read query**: parsing is total
 (panic-free) and degrades to fewer rows / NULL validity flags.
+COPY TO applies the strict output checks described above.
 
 ## Building & testing
 
