@@ -6,11 +6,10 @@
 #   docker run -i ... IMG stdio   -> stdio worker DuckDB spawns on-host
 # See docker-entrypoint.sh.
 #
-# Like vgi-units this worker is STATELESS: the X12/EDIFACT parser is pure
-# in-binary compute (no model registry, no per-attach state), and every table
-# function reads a caller-supplied path/content/blob — the host already exposes
-# any files. So there is no /data volume and no `farm.query.vgi.volumes`
-# mount-discovery label. The image is just the binary + a tiny entrypoint.
+# The parser is pure compute (no model registry or per-attach state). Reads use
+# caller-supplied paths/content/blobs; COPY TO uses temporary execution-scoped
+# storage and caller-supplied output paths. Mount input/output directories as
+# needed; there is no fixed /data volume or mount-discovery label.
 # syntax=docker/dockerfile:1
 
 # ---- build stage -----------------------------------------------------------
@@ -71,7 +70,8 @@ RUN apt-get update \
 COPY --from=build --chmod=0755 /x12-worker /usr/local/bin/x12-worker
 COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-# Run unprivileged. No state, no volume — there is nothing to own or persist.
+# Run unprivileged. COPY output directories must be writable by this user (or
+# override the UID with --user when sharing files with a host-side DuckDB).
 RUN useradd --create-home --uid 10001 app
 USER app
 

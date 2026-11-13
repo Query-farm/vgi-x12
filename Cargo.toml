@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/x12-core", "crates/x12-worker"]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.5.0"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT"
@@ -14,7 +14,10 @@ repository = "https://github.com/Query-farm/vgi-x12"
 # VGI Rust SDK (worker side), published on crates.io. Pulls in vgi-rpc 0.32 and
 # arrow 59 transitively; keep arrow/vgi-rpc here in lockstep with vgi's pins so a
 # single arrow/vgi-rpc resolves.
-vgi = "0.51.0"
+# Default features minus `sqlite`: COPY shards use the SDK filesystem-backed
+# shared storage, so SQLite is unnecessary. Dropping it removes
+# the bundled C SQLite (libsqlite3-sys, RUSTSEC-2026-0459) from the tree.
+vgi = { version = "0.51.0", default-features = false, features = ["transport-http", "catalog-publication"] }
 vgi-rpc = { version = "0.32.4", default-features = false, features = ["macros", "http"] }
 arrow-array = "59.2"
 arrow-buffer = "59.2"

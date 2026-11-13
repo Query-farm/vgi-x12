@@ -42,10 +42,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 .to_string(),
         ),
         tags: vec![
-            (
-                "vgi.title".to_string(),
-                "EDI".to_string(),
-            ),
+            ("vgi.title".to_string(), "X12 EDI".to_string()),
             ("vgi.subtitle".to_string(), "Inspect and edit healthcare and business interchanges without moving data off your machine.".to_string()),
             (
                 "vgi.keywords".to_string(),

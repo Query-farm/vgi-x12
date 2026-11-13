@@ -34,6 +34,8 @@ jobs:
       contents: read
       checks: write
     uses: ./.github/workflows/ci.yml
+    with:
+      linux_only: true
 
   publish:
     needs: [ci]
@@ -66,7 +68,9 @@ jobs:
       # INSIDE the container, so that path is bind-mounted at the identical
       # absolute path so the containerized worker resolves it. The stdio smoke
       # deliberately runs only the inline-content segments.test, which needs no
-      # data files.
+      # data files. The HTTP suite also shares its writable COPY scratch directory
+      # with the container. Run that container as the runner's UID so DuckDB can
+      # read the writer's owner-only temporary/published files.
       image_test: |
         echo "::group::download haybarn-unittest"
         REL=$(gh release list --repo Query-farm-haybarn/haybarn --limit 30 --json tagName \
@@ -87,8 +91,11 @@ jobs:
         echo "::endgroup::"
 
         echo "::group::full SQL suite — HTTP transport (one warm container)"
-        CID=$(docker run -d -p 18000:8000 -v "$PWD/data:$PWD/data:ro" "$CITEST_IMAGE")
+        X12_IMAGE_STAGE=$(mktemp -d)
+        CID=$(docker run -d -p 18000:8000 --user "$(id -u):$(id -g)" \
+          -v "$PWD/data:$PWD/data:ro" \
+          -v "$X12_IMAGE_STAGE:$X12_IMAGE_STAGE" "$CITEST_IMAGE")
         trap 'docker rm -f "$CID" >/dev/null 2>&1 || true' EXIT
         for _ in $(seq 1 30); do curl -fsS -o /dev/null http://localhost:18000/health && break; sleep 1; done
-        TRANSPORT=http VGI_X12_WORKER="http://localhost:18000" ci/run-integration.sh
+        STAGE="$X12_IMAGE_STAGE" TRANSPORT=http VGI_X12_WORKER="http://localhost:18000" ci/run-integration.sh
         echo "::endgroup::"

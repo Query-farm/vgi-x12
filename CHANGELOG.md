@@ -4,10 +4,10 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
-## Unreleased
+## 0.5.0 — 2026-11-12
 
-- Update the VGI SDK to 0.51 (protocol 3.3) for compatibility with the community
-  extension used by the integration and metadata gates.
+- Retain VGI protocol 3.3 compatibility and use filesystem-backed shared storage
+  for COPY shards without a bundled SQLite dependency.
 
 - Add `read_x12(input)`, a complete segment representation including ISA/GS/GE/IEA,
   per-document ordering, offsets, and per-interchange delimiters.
