@@ -255,3 +255,7 @@ Structural (count + control-number + delimiter) validation only.
 
 Part of the [Query.Farm](https://query.farm) VGI ecosystem. Copyright 2026 Query
 Farm LLC.
+
+## Notebooks
+
+[Executed SQL input-audit walkthrough](notebooks/README.md): retain synthetic EDI inputs while separating envelope checks, line extraction and numeric eligibility.
