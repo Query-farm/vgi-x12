@@ -185,15 +185,18 @@ impl TableFunction for Envelope {
             "vgi.result_columns_schema".into(),
             crate::meta::result_columns_schema(&output_schema()),
         ));
-        let examples = vec![crate::meta::table_example(
-            "envelope",
-            "interchange_ctrl, transaction_type, segment_count, se_count_ok",
-            "837",
-            "BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~\
+        let examples = vec![
+            crate::meta::table_example(
+                "envelope",
+                "interchange_ctrl, transaction_type, segment_count, se_count_ok",
+                "837",
+                "BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~\
              SV1*HC:99213*200*UN*1~",
-            "Summarize an inline 837 interchange as one envelope row with structural \
+                "Summarize an inline 837 interchange as one envelope row with structural \
              validity flags.",
-        )];
+            ),
+            crate::composed::ack_reconcile(),
+        ];
         tags.push((
             "vgi.example_queries".into(),
             crate::meta::example_queries_tag(&examples),

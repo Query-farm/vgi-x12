@@ -4,6 +4,20 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
+## Unreleased
+
+- Add composed example queries that combine the worker's objects:
+  `transaction_type` + the `transaction_sets` view (route an inbox),
+  `envelope` + `read_997` (acknowledgment reconciliation), and `read_837` +
+  `read_835` (claim-to-remittance reconciliation). Each SQL is defined once in
+  `composed.rs` and published in the schema list and on its driving object;
+  `test/sql/composed.test` pins their rows.
+- Add two composed agent tasks (`claims_missing_remittance`,
+  `unaccepted_transactions`) with private graders.
+- README: cast the VARCHAR CLP amounts before comparing them in the 835
+  example (the old string comparison treated '90' as greater than '100'), and
+  add a claim-to-remittance reconciliation example.
+
 ## 0.5.0 — 2026-11-12
 
 - Retain VGI protocol 3.3 compatibility and use filesystem-backed shared storage

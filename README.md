@@ -76,9 +76,10 @@ FROM x12.envelope('/data/inbound/*.edi');
 
 -- 3. Shaped healthcare view: 835 remittance claim-payment rows
 --    (public segment IDs only)
+--    (shaped columns are VARCHAR raw values, so cast amounts before comparing)
 SELECT clp_claim_id, clp_status_code, clp_total_charge, clp_total_paid, clp_patient_resp
 FROM x12.read_835('/data/era/*.835')
-WHERE clp_total_paid < clp_total_charge;
+WHERE CAST(clp_total_paid AS DECIMAL(12, 2)) < CAST(clp_total_charge AS DECIMAL(12, 2));
 
 -- 4. Sniff just the delimiters / type of inline content (scalars).
 --    `read_text` is a DuckDB TABLE function, so it supplies the `content` column:
@@ -91,6 +92,19 @@ SELECT * FROM x12.edifact_segments('/data/orders/*.edi');
 -- 6. Inline content (no file): the same functions accept a string directly
 SELECT segment_id, element_index, value
 FROM x12.segments_elements('ISA*00*          *00*          *ZZ*S              *ZZ*R              *240101*1200*^*00501*1*0*P*:~GS*HC*S*R*20240101*1200*1*X*005010~ST*837*0001~CLM*ACCT1*500~SE*3*0001~GE*1*1~IEA*1*1~');
+
+-- 7. Reconcile billed claims (837) against the payer's remittance (835):
+--    DISTINCT collapses the SV1 / CAS child fan-out to one row per claim, and a
+--    claim with no CLP yet keeps NULL status / paid
+SELECT b.clm_id, b.billed, p.clp_status_code, p.paid,
+       b.billed - coalesce(p.paid, 0) AS unpaid
+FROM (SELECT DISTINCT clm_id, CAST(clm_total_charge AS DECIMAL(12, 2)) AS billed
+      FROM x12.read_837('/data/claims/*.837')) AS b
+LEFT JOIN (SELECT DISTINCT clp_claim_id, clp_status_code,
+                  CAST(clp_total_paid AS DECIMAL(12, 2)) AS paid
+           FROM x12.read_835('/data/era/*.835')) AS p
+  ON p.clp_claim_id = b.clm_id
+ORDER BY b.clm_id;
 ```
 
 ## Function catalog

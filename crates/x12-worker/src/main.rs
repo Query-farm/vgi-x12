@@ -20,6 +20,7 @@
 //! thin Arrow adapters over it.
 
 mod arrow_io;
+mod composed;
 mod copy;
 mod meta;
 mod scalar;
@@ -197,14 +198,41 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                 ),
                 (
                     "vgi.example_queries".to_string(),
-                    r#"[
-  {"description": "Pull the elements of every CLM (claim) segment from a folder of 837 claim files.", "sql": "SELECT source_path, segment_index, element_index, value FROM x12.main.segments_elements('/data/claims/*.837') WHERE segment_id = 'CLM';"},
-  {"description": "Flag interchanges whose SE segment count fails to validate across an inbound folder.", "sql": "SELECT source_path, interchange_ctrl, transaction_type, se_count_ok FROM x12.main.envelope('/data/inbound/*.edi') WHERE se_count_ok IS DISTINCT FROM TRUE;"},
-  {"description": "Extract claim id, total paid, and payer from a folder of 835 remittance files.", "sql": "SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('/data/era/*.835');"},
-  {"description": "Classify inbound files by transaction set type for routing.", "sql": "SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text('/data/inbound/*.edi');"},
-  {"description": "Count exploded EDIFACT elements per message type across an orders folder.", "sql": "SELECT transaction_type, count(*) AS n_elements FROM x12.main.edifact_segments('/data/orders/*.edi') GROUP BY transaction_type;"}
-]"#
-                        .to_string(),
+                    // The schema-level list: the per-object starters plus every
+                    // composed example (defined once in `composed.rs`).
+                    crate::meta::example_queries_tag(
+                        &[
+                            vec![
+                            vgi::FunctionExample {
+                                description: "Pull the elements of every CLM (claim) segment from a folder of 837 claim files.".to_string(),
+                                sql: "SELECT source_path, segment_index, element_index, value FROM x12.main.segments_elements('/data/claims/*.837') WHERE segment_id = 'CLM';".to_string(),
+                                expected_output: None,
+                            },
+                            vgi::FunctionExample {
+                                description: "Flag interchanges whose SE segment count fails to validate across an inbound folder.".to_string(),
+                                sql: "SELECT source_path, interchange_ctrl, transaction_type, se_count_ok FROM x12.main.envelope('/data/inbound/*.edi') WHERE se_count_ok IS DISTINCT FROM TRUE;".to_string(),
+                                expected_output: None,
+                            },
+                            vgi::FunctionExample {
+                                description: "Extract claim id, total paid, and payer from a folder of 835 remittance files.".to_string(),
+                                sql: "SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('/data/era/*.835');".to_string(),
+                                expected_output: None,
+                            },
+                            vgi::FunctionExample {
+                                description: "Classify inbound files by transaction set type for routing.".to_string(),
+                                sql: "SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text('/data/inbound/*.edi');".to_string(),
+                                expected_output: None,
+                            },
+                            vgi::FunctionExample {
+                                description: "Count exploded EDIFACT elements per message type across an orders folder.".to_string(),
+                                sql: "SELECT transaction_type, count(*) AS n_elements FROM x12.main.edifact_segments('/data/orders/*.edi') GROUP BY transaction_type;".to_string(),
+                                expected_output: None,
+                            },
+                            ],
+                            crate::composed::all(),
+                        ]
+                        .concat(),
+                    ),
                 ),
             ],
             views: vec![transaction_sets_view()],
@@ -339,6 +367,26 @@ fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
     let isa = "ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       \
         *240101*1200*^*00501*000000001*0*P*:~";
 
+    // Composed tasks: two interchanges reconciled against each other. The
+    // data differs from the composed examples in `composed.rs` so the published
+    // examples never carry a task's answer.
+    let recon_837 = concat!(
+        "ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240201*1000*^*00501*000000401*0*P*:~",
+        "GS*HC*CLINIC*PAYER*20240201*1000*4*X*005010X222A1~ST*837*0001~BHT*0019*00*REF90*20240201*1000*CH~CLM*ACCT901*300***11:B:1*Y~SV1*HC:99213*300*UN*1~CLM*ACCT902*750***11:B:1*Y~SV1*HC:99215*750*UN*1~CLM*ACCT903*120***11:B:1*Y~SV1*HC:99211*120*UN*1~SE*9*0001~GE*1*4~IEA*1*000000401~"
+    );
+    let recon_835 = concat!(
+        "ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240220*0800*^*00501*000000402*0*P*:~",
+        "GS*HP*PAYER*CLINIC*20240220*0800*4*X*005010X221A1~ST*835*0001~BPR*I*340*C*ACH~CLP*ACCT901*1*300*240*60*MC*CCN0901*11~CLP*ACCT903*2*120*100*20*MC*CCN0903*11~SE*5*0001~GE*1*4~IEA*1*000000402~"
+    );
+    let batch_837 = concat!(
+        "ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240301*1100*^*00501*000000601*0*P*:~",
+        "GS*HC*CLINIC*PAYER*20240301*1100*7*X*005010X222A1~ST*837*0001~BHT*0019*00*REF61*20240301*1100*CH~CLM*ACCT610*100***11:B:1*Y~SE*4*0001~ST*837*0002~BHT*0019*00*REF62*20240301*1100*CH~CLM*ACCT620*200***11:B:1*Y~SE*4*0002~ST*837*0003~BHT*0019*00*REF63*20240301*1100*CH~CLM*ACCT630*300***11:B:1*Y~SE*4*0003~ST*837*0004~BHT*0019*00*REF64*20240301*1100*CH~CLM*ACCT640*400***11:B:1*Y~SE*4*0004~GE*4*7~IEA*1*000000601~"
+    );
+    let batch_997 = concat!(
+        "ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240301*1500*^*00501*000000602*0*P*:~",
+        "GS*FA*PAYER*CLINIC*20240301*1500*9*X*005010~ST*997*0001~AK1*HC*7~AK2*837*0001~AK5*A~AK2*837*0002~AK3*CLM*3**8~AK5*R*5~AK2*837*0003~AK5*A~AK9*P*4*3*2~SE*11*0001~GE*1*9~IEA*1*000000602~"
+    );
+
     vec![
         AgentTask {
             name: "sniff_element_separator".to_string(),
@@ -435,6 +483,28 @@ fn agent_test_tasks() -> Vec<crate::meta::AgentTask> {
             "Summarize the EDIFACT interchange and return its message transaction_type.",
             EXAMPLE_EDIFACT,
         ),
+        AgentTask {
+            name: "claims_missing_remittance".to_string(),
+            prompt: format!(
+                "A clinic sent the 837 claim interchange below and later received the 835 \
+                 remittance interchange below. Which claim ids from the 837 have no claim \
+                 payment (CLP) in the 835? Use the worker's inline-content support (do not write \
+                 them to files). Return one row per claim id in a single column named clm_id. \
+                 837: '{recon_837}' 835: '{recon_835}'."
+            ),
+        },
+        AgentTask {
+            name: "unaccepted_transactions".to_string(),
+            prompt: format!(
+                "A clinic sent the 837 batch interchange below and received the 997 functional \
+                 acknowledgment below. Which transaction set control numbers (ST02) in the 837 \
+                 batch either have an AK5 status other than 'A' in the 997 or are not \
+                 acknowledged in the 997 at all? Use the worker's inline-content support (do \
+                 not write them to files). Return one row per transaction in a single column \
+                 named transaction_ctrl. \
+                 837: '{batch_837}' 997: '{batch_997}'."
+            ),
+        },
     ]
 }
 

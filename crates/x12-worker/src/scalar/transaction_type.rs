@@ -26,7 +26,7 @@ impl ScalarFunction for TransactionTypeFn {
             sql: "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type;".into(),
             description: "Detect that an inline interchange carries an 835.".into(),
             expected_output: None,
-        }];
+        }, crate::composed::route_inbox()];
         let mut tags = crate::meta::object_tags(
             "Detect EDI Transaction Type",
             "Detect the transaction set type of inline X12 or UN/EDIFACT content without \

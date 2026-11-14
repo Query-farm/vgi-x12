@@ -1,0 +1,54 @@
+# name: test/sql/composed.test
+# group: [vgi_x12]
+#
+# Composed queries that combine two or more of the worker's objects, mirroring
+# the composed examples in crates/x12-worker/src/composed.rs and the composed
+# agent-task graders in vgi-agent-tests.yaml. Inline content only.
+
+require-env VGI_X12_WORKER
+
+statement ok
+LOAD vgi;
+
+statement ok
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION '${VGI_X12_WORKER}');
+
+# Composed: transaction_type sniffs each inbox payload and the transaction_sets
+# reference view names its shaped read_* function (EDIFACT ORDERS has none).
+query TTT
+SELECT inbox.filename, x12.main.transaction_type(inbox.content) AS tx_type, t.shaped_function FROM (VALUES ('remit_0115.edi', 'ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240115*0900*^*00501*000000301*0*P*:~GS*HP*PAYER*CLINIC*20240115*0900*1*X*005010X221A1~ST*835*0001~BPR*I*400*C*ACH~CLP*ACCT777*1*500*400*100*MC*CCN0001*11~SE*4*0001~GE*1*1~IEA*1*000000301~'), ('ack_0101.edi', 'ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240101*1300*^*00501*000000302*0*P*:~GS*FA*PAYER*CLINIC*20240101*1300*1*X*005010~ST*997*0001~AK1*HC*1~AK2*837*0001~AK5*A~AK9*A*1*1*1~SE*6*0001~GE*1*1~IEA*1*000000302~'), ('orders_0102.edi', 'UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240102:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''UNT+3+MSG1''UNZ+1+REF1''')) AS inbox(filename, content) LEFT JOIN x12.main.transaction_sets AS t ON t.transaction_set = x12.main.transaction_type(inbox.content) ORDER BY inbox.filename;
+----
+ack_0101.edi	997	read_997
+orders_0102.edi	ORDERS	NULL
+remit_0115.edi	835	read_835
+
+# Composed: a sent 837 batch (envelope) reconciled against the partner's 997
+# (read_997) on group + transaction control numbers.
+query TTI
+WITH sent AS (SELECT group_ctrl, transaction_type, transaction_ctrl FROM x12.main.envelope('ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240101*1200*^*00501*000000101*0*P*:~GS*HC*CLINIC*PAYER*20240101*1200*1*X*005010X222A1~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~SE*4*0001~ST*837*0002~BHT*0019*00*REF02*20240101*1200*CH~CLM*ACCT778*1000***11:B:1*Y~SE*4*0002~ST*837*0003~BHT*0019*00*REF03*20240101*1200*CH~CLM*ACCT779*250***11:B:1*Y~SE*4*0003~GE*3*1~IEA*1*000000101~')), acks AS (SELECT ak1_group_control, ak2_transaction_set_id, ak2_transaction_control, any_value(ak5_status) AS ak5_status, count(ak3_segment_id) AS segment_errors FROM x12.main.read_997('ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240101*1300*^*00501*000000501*0*P*:~GS*FA*PAYER*CLINIC*20240101*1300*5*X*005010~ST*997*0001~AK1*HC*1~AK2*837*0001~AK5*A~AK2*837*0002~AK3*CLM*3**8~AK4*2*782*1~AK5*R*5~AK9*P*3*2*1~SE*10*0001~GE*1*5~IEA*1*000000501~') GROUP BY ALL) SELECT s.transaction_ctrl, coalesce(a.ak5_status, 'NOT ACKNOWLEDGED') AS ack_status, coalesce(a.segment_errors, 0) AS segment_errors FROM sent AS s LEFT JOIN acks AS a ON a.ak1_group_control = s.group_ctrl AND a.ak2_transaction_set_id = s.transaction_type AND a.ak2_transaction_control = s.transaction_ctrl ORDER BY s.transaction_ctrl;
+----
+0001	A	0
+0002	R	1
+0003	NOT ACKNOWLEDGED	0
+
+# Composed: billed claims (read_837) reconciled against the remittance
+# (read_835); DISTINCT collapses the SV1 / CAS fan-out.
+query TRTRR
+WITH billed AS (SELECT DISTINCT clm_id, CAST(clm_total_charge AS DECIMAL(12, 2)) AS billed FROM x12.main.read_837('ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240101*1200*^*00501*000000201*0*P*:~GS*HC*CLINIC*PAYER*20240101*1200*1*X*005010X222A1~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~CLM*ACCT777*500***11:B:1*Y~SV1*HC:99213*200*UN*1~SV1*HC:85025*300*UN*1~CLM*ACCT778*1000***11:B:1*Y~SV1*HC:99214*1000*UN*1~CLM*ACCT779*250***11:B:1*Y~SV1*HC:99212*250*UN*1~SE*12*0001~GE*1*1~IEA*1*000000201~')), paid AS (SELECT DISTINCT clp_claim_id, clp_status_code, CAST(clp_total_paid AS DECIMAL(12, 2)) AS paid FROM x12.main.read_835('ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240115*0900*^*00501*000000301*0*P*:~GS*HP*PAYER*CLINIC*20240115*0900*1*X*005010X221A1~ST*835*0001~BPR*I*400*C*ACH~CLP*ACCT777*1*500*400*100*MC*CCN0001*11~CAS*PR*1*100~CLP*ACCT778*4*1000*0*0*MC*CCN0002*11~CAS*CO*50*1000~SE*7*0001~GE*1*1~IEA*1*000000301~')) SELECT b.clm_id, b.billed, p.clp_status_code, p.paid, b.billed - coalesce(p.paid, 0) AS unpaid FROM billed AS b LEFT JOIN paid AS p ON p.clp_claim_id = b.clm_id ORDER BY b.clm_id;
+----
+ACCT777	500.00	1	400.00	100.00
+ACCT778	1000.00	4	0.00	1000.00
+ACCT779	250.00	NULL	NULL	250.00
+
+# Agent-task grader claims_missing_remittance (vgi-agent-tests.yaml).
+query T
+SELECT DISTINCT c.clm_id FROM x12.main.read_837('ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240201*1000*^*00501*000000401*0*P*:~GS*HC*CLINIC*PAYER*20240201*1000*4*X*005010X222A1~ST*837*0001~BHT*0019*00*REF90*20240201*1000*CH~CLM*ACCT901*300***11:B:1*Y~SV1*HC:99213*300*UN*1~CLM*ACCT902*750***11:B:1*Y~SV1*HC:99215*750*UN*1~CLM*ACCT903*120***11:B:1*Y~SV1*HC:99211*120*UN*1~SE*9*0001~GE*1*4~IEA*1*000000401~') AS c WHERE NOT EXISTS (SELECT 1 FROM x12.main.read_835('ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240220*0800*^*00501*000000402*0*P*:~GS*HP*PAYER*CLINIC*20240220*0800*4*X*005010X221A1~ST*835*0001~BPR*I*340*C*ACH~CLP*ACCT901*1*300*240*60*MC*CCN0901*11~CLP*ACCT903*2*120*100*20*MC*CCN0903*11~SE*5*0001~GE*1*4~IEA*1*000000402~') AS p WHERE p.clp_claim_id = c.clm_id) ORDER BY c.clm_id;
+----
+ACCT902
+
+# Agent-task grader unaccepted_transactions (vgi-agent-tests.yaml).
+query T
+SELECT e.transaction_ctrl FROM x12.main.envelope('ISA*00*          *00*          *ZZ*CLINIC         *ZZ*PAYER          *240301*1100*^*00501*000000601*0*P*:~GS*HC*CLINIC*PAYER*20240301*1100*7*X*005010X222A1~ST*837*0001~BHT*0019*00*REF61*20240301*1100*CH~CLM*ACCT610*100***11:B:1*Y~SE*4*0001~ST*837*0002~BHT*0019*00*REF62*20240301*1100*CH~CLM*ACCT620*200***11:B:1*Y~SE*4*0002~ST*837*0003~BHT*0019*00*REF63*20240301*1100*CH~CLM*ACCT630*300***11:B:1*Y~SE*4*0003~ST*837*0004~BHT*0019*00*REF64*20240301*1100*CH~CLM*ACCT640*400***11:B:1*Y~SE*4*0004~GE*4*7~IEA*1*000000601~') AS e WHERE e.transaction_ctrl NOT IN (SELECT ak2_transaction_control FROM x12.main.read_997('ISA*00*          *00*          *ZZ*PAYER          *ZZ*CLINIC         *240301*1500*^*00501*000000602*0*P*:~GS*FA*PAYER*CLINIC*20240301*1500*9*X*005010~ST*997*0001~AK1*HC*7~AK2*837*0001~AK5*A~AK2*837*0002~AK3*CLM*3**8~AK5*R*5~AK2*837*0003~AK5*A~AK9*P*4*3*2~SE*11*0001~GE*1*9~IEA*1*000000602~') WHERE ak5_status = 'A') ORDER BY e.transaction_ctrl;
+----
+0002
+0004

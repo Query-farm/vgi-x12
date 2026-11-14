@@ -92,7 +92,7 @@ impl TableFunction for Shaped {
             "vgi.result_columns_schema".into(),
             crate::meta::result_columns_schema(&self.output_schema()),
         ));
-        let examples = match example_for(st) {
+        let mut examples = match example_for(st) {
             Some((select, body)) => vec![crate::meta::table_example(
                 self.def.fn_name,
                 select,
@@ -105,6 +105,10 @@ impl TableFunction for Shaped {
             )],
             None => Vec::new(),
         };
+        // The composed claim-to-remittance reconciliation is driven by the 837.
+        if st == "837" {
+            examples.push(crate::composed::claim_remit());
+        }
         if !examples.is_empty() {
             tags.push((
                 "vgi.example_queries".into(),
