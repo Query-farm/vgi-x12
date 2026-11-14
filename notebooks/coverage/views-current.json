@@ -1,0 +1,45 @@
+{
+  "query": "SELECT * FROM duckdb_views() WHERE database_name='x12' ORDER BY schema_name,view_name",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "schema_oid",
+    "view_name",
+    "view_oid",
+    "comment",
+    "tags",
+    "internal",
+    "temporary",
+    "column_count",
+    "sql",
+    "is_bound"
+  ],
+  "rows": [
+    [
+      "x12",
+      22594,
+      "main",
+      22805,
+      "transaction_sets",
+      22806,
+      "Reference view mapping each shaped X12 transaction set to its read_* function.",
+      {
+        "domain": "edi-and-interchange",
+        "topic": "x12-edifact",
+        "vgi.category": "Reference",
+        "vgi.doc_llm": "A browsable reference view of the X12 transaction sets the worker projects a shaped, flat relational view for. One row per set gives its ST01 identifier, EDI family, the `x12.main` read_* table function that shapes it, and a short general-industry description. Zero-argument \u2014 query it cold to discover which shaped function to call before you have an interchange in hand. Descriptions are general industry terms only; no copyrighted TR3 implementation-guide text.",
+        "vgi.doc_md": "Reference view: one row per shaped X12 transaction set (ST01, family, its read_* function, and a short description). Zero-argument \u2014 the cheapest discovery entry point.",
+        "vgi.example_queries": "[\n  {\"description\": \"List the shaped X12 transaction sets and their read_* function.\", \"sql\": \"SELECT transaction_set, shaped_function FROM x12.main.transaction_sets WHERE family = 'X12' ORDER BY transaction_set;\"},\n  {\"description\": \"Find which shaped function parses 835 remittance advice.\", \"sql\": \"SELECT shaped_function, summary FROM x12.main.transaction_sets WHERE transaction_set = '835';\"}\n]",
+        "vgi.executable_examples": "[\n  {\"description\": \"List every shaped transaction set and its read_* function.\", \"sql\": \"SELECT transaction_set, shaped_function FROM x12.main.transaction_sets ORDER BY transaction_set\", \"expected_result\": [{\"transaction_set\": \"270\", \"shaped_function\": \"read_270\"}, {\"transaction_set\": \"271\", \"shaped_function\": \"read_271\"}, {\"transaction_set\": \"835\", \"shaped_function\": \"read_835\"}, {\"transaction_set\": \"837\", \"shaped_function\": \"read_837\"}, {\"transaction_set\": \"850\", \"shaped_function\": \"read_850\"}, {\"transaction_set\": \"997\", \"shaped_function\": \"read_997\"}, {\"transaction_set\": \"999\", \"shaped_function\": \"read_999\"}]}\n]",
+        "vgi.keywords": "[\"transaction sets\",\"reference\",\"discovery\",\"shaped\",\"read_835\",\"read_837\",\"read_270\",\"read_271\",\"read_850\",\"read_997\",\"read_999\",\"835\",\"837\",\"270\",\"271\",\"850\",\"997\",\"999\"]",
+        "vgi.title": "Shaped Transaction Sets"
+      },
+      false,
+      false,
+      null,
+      "CREATE VIEW transaction_sets AS SELECT * FROM (SELECT * FROM (VALUES ('270', 'X12', 'read_270', 'Eligibility, coverage, or benefit inquiry'), ('271', 'X12', 'read_271', 'Eligibility, coverage, or benefit response'), ('835', 'X12', 'read_835', 'Health-care claim payment / remittance advice (ERA)'), ('837', 'X12', 'read_837', 'Health-care claim (professional / institutional / dental)'), ('850', 'X12', 'read_850', 'Purchase order'), ('997', 'X12', 'read_997', 'Functional acknowledgment'), ('999', 'X12', 'read_999', 'Implementation acknowledgment')) AS valueslist) AS t(transaction_set, \"family\", shaped_function, summary);",
+      false
+    ]
+  ]
+}

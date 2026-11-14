@@ -1,0 +1,360 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "catalog_sha256": "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+        "notes": "Actual complete 17 function rows form16 logical names, plus transaction_sets view=17 surfaces. copy_x12 has2 catalog forms but counts once; registered COPY read/write handler remains in denominator and uncovered. Complete SELECT output columns and COPY format metadata match release/current. Reviewed source diff changes metadata/examples only; current exact notebook runtime is not claimed."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "catalog_sha256": "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed",
+        "notes": "Actual complete 17 function rows form16 logical names, plus transaction_sets view=17 surfaces. copy_x12 has2 catalog forms but counts once; registered COPY read/write handler remains in denominator and uncovered. Complete SELECT output columns and COPY format metadata match release/current. Reviewed source diff changes metadata/examples only; current exact notebook runtime is not claimed."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "11e98b756b10128bf74d6c7c7babaf16e0c56171805fba2284a7ac34cabed4c9"
+      }
+    },
+    {
+      "path": "02_escape_characters_change_fields_not_segment_counts.ipynb",
+      "sha256": "8e667e8b5db1dbdcf16c60197c28a3fb5382249914f4f0b4d1801d912c88beec",
+      "execution": {
+        "path": "coverage/run-02.json",
+        "sha256": "fe10e4f9657b20c0948af40196d84c45285608283229e7ac46df043fe97105b4"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "main",
+        "name": "envelope"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "envelope-query",
+          "reference": "x12.main.envelope"
+        }
+      ],
+      "narrative_cells": [
+        "envelope-story"
+      ],
+      "result_cells": [
+        "envelope-query",
+        "audit-chart"
+      ],
+      "interpretation_cells": [
+        "audit-chart"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Retain pass/fail/unknown structural checks before selecting numeric lines.",
+        "finding": "Five envelopes remain across seven inventoried inputs; bad quantity still passes structure, wrong count fails, missing trailers remain unknown. Known failures never enter selected totals."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "read_850"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "lines-query",
+          "reference": "x12.main.read_850"
+        }
+      ],
+      "narrative_cells": [
+        "lines-story",
+        "numeric-story",
+        "summary-story"
+      ],
+      "result_cells": [
+        "lines-query",
+        "summary-chart"
+      ],
+      "interpretation_cells": [
+        "summary-chart"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Carry source/envelope keys through shaped line extraction, preserve raw numeric failures and declare selected subtotal scope.",
+        "finding": "Eight emitted lines retain one nonnumeric quantity asNULL. Preview False\u2192True selects3\u21925lines and139.95\u2192234.90fictional units. Byte-truncated no-se contains noPO1 and cannot establish a general SE-required rule."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "read_x12"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "segments-query",
+          "reference": "x12.main.read_x12"
+        }
+      ],
+      "narrative_cells": [
+        "segments-story"
+      ],
+      "result_cells": [
+        "segment-finding"
+      ],
+      "interpretation_cells": [
+        "segment-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Compare complete source segments with narrower transaction/shaped populations.",
+        "finding": "Six supplied files retain55segments, including4in no-transactions and5in byte-truncated no-se. Missing input counts remainNULL; document segment ordinals differ from transaction-local ordinals. No COPY/write executed."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "segments_elements"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "segments-query",
+          "reference": "x12.main.segments_elements"
+        }
+      ],
+      "narrative_cells": [
+        "elements-story"
+      ],
+      "result_cells": [
+        "elements-finding"
+      ],
+      "interpretation_cells": [
+        "elements-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Independently reconstruct raw PO1 positional values and compare the shaped quantity/price projection within full source/envelope identity.",
+        "finding": "All8raw/shaped rows agree, including unknown quantity. Fixture-specific unique line numbers and simple fields are stated; agreement does not establish numeric eligibility."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "transaction_type"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "routing-query",
+          "reference": "x12.main.transaction_type"
+        }
+      ],
+      "narrative_cells": [
+        "routing-story"
+      ],
+      "result_cells": [
+        "routing-finding"
+      ],
+      "interpretation_cells": [
+        "routing-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Use the returned first transaction type to choose a projection while retaining missing and no-transaction inputs.",
+        "finding": "Five of seven input records detect850 and map toread_850, including malformed variants; type detection is not structural or numeric validation and is not a whole multi-type inventory."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "transaction_sets"
+      },
+      "notebook": "01_extracted_lines_need_an_input_audit.ipynb",
+      "sql": [
+        {
+          "cell": "routing-query",
+          "reference": "x12.main.transaction_sets"
+        }
+      ],
+      "narrative_cells": [
+        "routing-story"
+      ],
+      "result_cells": [
+        "routing-finding"
+      ],
+      "interpretation_cells": [
+        "routing-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "cb65cfa2adc6d056add6573f4f91ced48165773e0006c5023f6c2f47eb293ae5",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Join detected types to the released shaped-reader reference, with NULL unmatched records preserved.",
+        "finding": "The reference namesread_850 for the five850 inputs; no-transaction and missing records remain unmatched. The EDIFACT story separately showsORDERS lacking anX12shaped reader without being rejected by its dedicated parser."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "delimiters"
+      },
+      "notebook": "02_escape_characters_change_fields_not_segment_counts.ipynb",
+      "sql": [
+        {
+          "cell": "connection",
+          "reference": "x12.main.delimiters"
+        }
+      ],
+      "narrative_cells": [
+        "attach-story",
+        "elements-story"
+      ],
+      "result_cells": [
+        "inventory-finding",
+        "counts-finding"
+      ],
+      "interpretation_cells": [
+        "inventory-finding",
+        "counts-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "8e667e8b5db1dbdcf16c60197c28a3fb5382249914f4f0b4d1801d912c88beec",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Inspect actual returned separator tuple before explaining the effect of a removed release character.",
+        "finding": "Both authored variants return element+,segment apostrophe,component colon andNULLrepetition. The scalar has no release-character column; visible UNA supplies that context. Changed field boundaries do not imply changed separator configuration."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "edifact_envelope"
+      },
+      "notebook": "02_escape_characters_change_fields_not_segment_counts.ipynb",
+      "sql": [
+        {
+          "cell": "connection",
+          "reference": "x12.main.edifact_envelope"
+        }
+      ],
+      "narrative_cells": [
+        "envelope-story"
+      ],
+      "result_cells": [
+        "envelope-finding"
+      ],
+      "interpretation_cells": [
+        "envelope-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "8e667e8b5db1dbdcf16c60197c28a3fb5382249914f4f0b4d1801d912c88beec",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Keep message segment counts and authored envelope identity separate from element-boundary correctness.",
+        "finding": "Both messages have3segments and passingUNTcount. That result stays fixed whenFTX gains a fifth field; no full business-rule validation or outer-control agreement is inferred."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "edifact_segments"
+      },
+      "notebook": "02_escape_characters_change_fields_not_segment_counts.ipynb",
+      "sql": [
+        {
+          "cell": "connection",
+          "reference": "x12.main.edifact_segments"
+        }
+      ],
+      "narrative_cells": [
+        "elements-story"
+      ],
+      "result_cells": [
+        "counts-finding"
+      ],
+      "interpretation_cells": [
+        "counts-finding"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T21:10:41.492244+00:00",
+        "notebook_sha256": "8e667e8b5db1dbdcf16c60197c28a3fb5382249914f4f0b4d1801d912c88beec",
+        "catalog_sha256": [
+          "fa6b51bbdc4dad81ef63111831e49ac26ced4c53190f37c1d1a33f2c36a6d659",
+          "6c99962730b21a3b884bfdb51ae66e326957bb02fc84ca2b57f5af5fe54961ed"
+        ],
+        "purpose": "Inspect returned FTX positions and explicit empty strings, then count decoded value rows under the selected syntax.",
+        "finding": "Release character present\u2192removed splits Subtotal5+fee across positions4/5; FTXpositions4\u21925 and total decoded element/component rows11\u219212, while2empty positions andUNH/UNTvalues stayfixed. Counts are not segment/message counts."
+      }
+    }
+  ]
+}

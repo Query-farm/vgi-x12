@@ -1,0 +1,39 @@
+{
+  "query": "SELECT * FROM vgi_copy_formats() WHERE handler='copy_x12' ORDER BY direction,option_name",
+  "columns": [
+    "catalog_name",
+    "format_name",
+    "direction",
+    "ordered",
+    "format_description",
+    "format_comment",
+    "format_tags",
+    "handler",
+    "option_name",
+    "option_type",
+    "option_description"
+  ],
+  "rows": [
+    [
+      "x12",
+      "x12.x12",
+      "both",
+      true,
+      "Import and export complete X12 segment rows through the catalog's COPY format.",
+      "Complete X12 segment rows (read_x12 schema)",
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Import and export X12 with the alias-scoped x12 COPY format. FROM emits the complete read_x12 schema. TO consumes ordered segment_id, elements, element_separator, and segment_terminator columns. Paths are worker-local. The writer validates complete ASCII envelopes and publishes only after validation; recalculate_counts updates trailer counts without changing control numbers. Use read_x12 for ordinary SELECT queries.",
+        "vgi.doc_md": "## X12 COPY format\n\nThe registered handler is invoked by DuckDB's COPY machinery. It cannot be called directly as a table function. Discover the alias-scoped format using the example query.\n\n**Import.** Create the destination table from the schema of `read_x12(input)` with zero rows, then import a worker-local file or glob. Column names, order, and types must match. Reads retain malformed segments for inspection and materialize the input in memory.\n\n**Export.** Supply the four named columns `segment_id`, `elements`, `element_separator`, and `segment_terminator`, ordered by document and segment index. Other columns are informational. ISA11 and ISA16 preserve repetition and component delimiters. Empty element strings are retained; NULL values are rejected.\n\n**Validation and publication.** The writer checks ASCII text, fixed-width ISA, envelope nesting, counts, and control matches across batches. The explicit `recalculate_counts` option updates SE01/GE01/IEA01 only. A same-directory temporary file replaces the target after validation completes; failure preserves the old target. Empty input writes an empty file. This is structural validation; transaction-specific content rules remain outside scope. Formatting whitespace is normalized. EDIFACT and binary payloads are unsupported. See the repository README for the complete edit-and-export workflow.",
+        "vgi.example_queries": "[{\"description\":\"Discover the X12 COPY format, supported directions, ordering, and options.\",\"sql\":\"SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"copy\",\"segments\",\"envelopes\",\"local files\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"document_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based document ordinal within this invocation; distinguishes inline and repeated input paths.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based segment ordinal across the whole document, including all envelopes. Order by document_index, segment_index before COPY TO.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier, including ISA, GS, ST, SE, GE, and IEA.\"},{\"name\":\"elements\",\"type\":\"VARCHAR[]\",\"description\":\"All positional element values, preserving empty values, padding, composites, and repetitions as unsplit text.\"},{\"name\":\"byte_offset\",\"type\":\"BIGINT\",\"description\":\"Start byte offset in the source document; informational after edits.\"},{\"name\":\"element_separator\",\"type\":\"VARCHAR\",\"description\":\"Element separator in force for this row's interchange.\"},{\"name\":\"segment_terminator\",\"type\":\"VARCHAR\",\"description\":\"Segment terminator in force for this row's interchange. Component and repetition separators remain in ISA16 and ISA11.\"}]",
+        "vgi.title": "X12 COPY"
+      },
+      "copy_x12",
+      "recalculate_counts",
+      "BOOLEAN",
+      "Recompute SE01, GE01, and IEA01 after edits. Defaults to false (validate existing counts). Never changes control numbers or synthesizes missing envelopes."
+    ]
+  ]
+}

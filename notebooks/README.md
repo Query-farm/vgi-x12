@@ -1,76 +1,139 @@
-# VGI X12 notebooks
+# X12 and EDIFACT examples
 
-[01 · Extracted lines still need an input audit](01_extracted_lines_need_an_input_audit.ipynb) uses visible SQL to separate structural envelope checks from numeric quality, retain inputs that emit no shaped rows, and calculate a selected-line subtotal over synthetic purchase-order alternatives.
+- [01 · Extracted lines still need an input audit](01_extracted_lines_need_an_input_audit.ipynb) preserves the synthetic purchase-order audit, adds type routing and complete-segment accounting, and traces shaped quantities/prices back to raw positions. [Open in Colab](https://colab.research.google.com/github/Query-farm/vgi-x12/blob/main/notebooks/01_extracted_lines_need_an_input_audit.ipynb).
+- [02 · A field boundary can change while segment counts pass](02_escape_characters_change_fields_not_segment_counts.ipynb) compares two authored EDIFACT messages differing by one release character. [Open in Colab](https://colab.research.google.com/github/Query-farm/vgi-x12/blob/main/notebooks/02_escape_characters_change_fields_not_segment_counts.ipynb).
 
-## Run
-
-Install [uv](https://docs.astral.sh/uv/). From the repository root:
-
-```sh
-uv sync --project notebooks --frozen
-uv run --project notebooks --frozen python notebooks/execute.py
-```
-
-The complete `notebooks/` directory also runs independently of this checkout:
+Choose **Runtime → Run all** in Colab. Its base-package bootstrap retains compatible
+preloaded kernel/data/plotting libraries and downloads immutable, SHA256-verified
+companions. Locally, install [uv](https://docs.astral.sh/uv/) and run inside this
+`notebooks/` directory:
 
 ```sh
-cd notebooks
-uv sync --frozen
-uv run --frozen python execute.py
+uv sync --locked
+uv run --locked vgi-notebooks
+uv run --locked vgi-notebooks 01_extracted_lines_need_an_input_audit.ipynb --parameters '{"ALLOW_INCOMPLETE":true}' --output-dir artifacts/incomplete-preview
+uv run --locked vgi-notebooks 02_escape_characters_change_fields_not_segment_counts.ipynb --parameters '{"ESCAPE_PLUS":false}' --output-dir artifacts/unescaped
 ```
 
-Initial setup downloads Python dependencies, the VGI community extension and the native release. Parsing then reads only the six committed synthetic files. No Rust toolchain, local worker build, credentials or external data service is needed. The native release was executed on macOS Apple silicon; other supported archives are listed on the release page.
+For Jupyter select `.venv/bin/python`. Local publication uses the shared `[runner]`
+extra and lock. The runner saves only successful defaults, rejects unknown parameter
+names and requires a separate destination for overrides. If an older bootstrap
+replaced kernel libraries, save your work and open the current notebook in a fresh runtime.
 
-In VS Code select `notebooks/.venv/bin/python` and use `notebooks/` as the working directory. Other Jupyter editors can register the environment:
+Visible SQL starts the verified native release:
+
+```sql
+INSTALL vgi FROM community;
+LOAD vgi;
+ATTACH 'x12' (TYPE vgi,LOCATION 'github-auto://Query-farm/vgi-x12@v0.5.0');
+```
+
+VGI downloads the platform archive, checks its SHA256 and caches it. No worker
+checkout, Rust build, credentials, real data service or live filesystem inspection
+is required. The notebook directory runs independently. Initial extension/package/
+companion/release retrieval needs network access. The local lock uses **Haybarn
+2.0.0rc11**, tested on macOS arm64; other published platforms were not executed.
+Upgrade the literal worker release only after rechecking catalogs, defaults and experiments.
+
+The [shared v0.3.20 standard](https://github.com/Query-farm/vgi-example-notebooks/blob/v0.3.20/docs/standard.md)
+supplies the proper catalog title/subtitle, branding, isolated SQL secrets, SVG
+presentation and execution protections. Keep `charts/` beside saved notebooks for
+GitHub's content-addressed image links; interactive runs retain native SVG. Review
+PNGs, logs and experiment copies remain ignored. Hosted Colab was not manually
+operated; the bootstrap test uses a fresh compatible kernel with eight libraries preloaded.
+
+Coverage is **9 of 17 named public SQL surfaces**, meeting the at-least-half target.
+Covered: `envelope`, `read_850`, `read_x12`, `segments_elements`, `transaction_type`,
+`transaction_sets`, `delimiters`, `edifact_envelope` and `edifact_segments`.
+Uncovered: `copy_x12`, `segments`, `read_270`, `read_271`, `read_835`, `read_837`,
+`read_997` and `read_999`. The two catalog forms of `copy_x12` count once; this
+registered read/write handler stays in the denominator even though it is invoked
+through COPY rather than SELECT. These examples perform no COPY or file write.
+
+`coverage.json` binds complete runtime catalogs, all SELECT output schemas, COPY
+format metadata, execution receipts and reviewed SQL/narrative/result mappings.
+Notebooks execute v0.5.0, including the new complete `read_x12` representation.
+Current public source has matching interfaces and unchanged parser/dependencies;
+compatible mappings do not claim current-main notebook execution. The initial
+static nine-candidate audit missed shaped-reader registrations and the COPY handler.
+
+## Synthetic inputs and scope
+
+The six original X12 alternatives are unchanged. `fixtures/complete.edi` matches
+`data/po_850.850` from source revision `38a2fe8a5604566e23971413ed6c7800c6bd389c`.
+`build_fixtures.py` derives wrong-count, nonnumeric-quantity, missing-outer-trailer,
+byte-truncated and no-transaction alternatives. SQL adds an explicit missing-input
+inventory record. These are test alternatives of one order, not independent purchases.
+
+Optional regeneration covers those original six files only:
 
 ```sh
-uv run --project notebooks --frozen python -m ipykernel install --user --name vgi-x12-notebooks --display-name 'Python (vgi-x12 notebooks)'
+uv run --locked python build_fixtures.py /tmp/vgi-x12-fixtures
 ```
 
-Restart and run all after changing the visible parameter. Connection and analytical SQL stay expanded. Imports, plotting, interpretation generation, assertions and cleanup source are folded, while charts remain visible.
+The two new `fixtures/edifact/` files are authored examples of public UNA/UNB/UNH/
+FTX/UNT/UNZ syntax. Their only difference is removal of the `?` preceding a plus
+inside FTX text. Both have three message segments. The provenance manifest records
+all eight sizes/hashes, original source revision and the exact transformation;
+setup verifies every byte image. Party IDs, controls, clocks and text are invented.
+No real business records or PHI are included, and internal dates are not collection dates.
+The MIT worker license is bundled.
 
-## Experiment
-
-```sh
-uv run --project notebooks --frozen python notebooks/execute.py \
-  --parameters '{"ALLOW_INCOMPLETE":true}' \
-  --output-dir notebooks/validation/incomplete-preview
-```
-
-The default requires all six envelope checks to pass. The experiment permits unknown checks when none failed; known failures remain excluded. This is a reporting preview, not interchange acceptance. Numeric eligibility remains a separate requirement. Reset to false for the saved default.
-
-The runner requires a separate destination for overrides, rejects unknown parameter names and only saves after complete successful execution. Failures preserve the previous saved notebook. Experiment copies include the assets, fixtures, helper/builder, README and locked environment. Logs, review charts and experiment copies are ignored.
-
-## Worker and fixture provenance
-
-The visible literal `ATTACH` uses `github-auto://Query-farm/vgi-x12@v0.4.0`. VGI downloads, verifies and caches the platform release. Haybarn 2.0.0rc11 and notebook packages are pinned separately from the worker's Cargo files. Upgrades require an explicit tag change and both parameter runs.
-
-`fixtures/complete.edi` is an unchanged copy of the hand-authored [po_850.850 fixture at 38a2fe8](https://github.com/Query-farm/vgi-x12/blob/38a2fe8a5604566e23971413ed6c7800c6bd389c/data/po_850.850). The fixture contains synthetic party/contact/order data, no real business records or PHI. `build_fixtures.py` derives five alternatives: a wrong SE count, a nonnumeric quantity, missing GE/IEA trailers, missing SE and outer trailers, and an interchange containing no ST transaction. SQL adds a missing-input inventory record. These are alternative test cases of one order, not independent purchases.
-
-Regenerate all six files from the bundled complete input:
-
-```sh
-uv run --project notebooks --frozen python notebooks/build_fixtures.py /tmp/vgi-x12-fixtures
-```
-
-The analysis uses public segment IDs and positional fields. It embeds no copyrighted ASC X12 implementation-guide text, loop names or code-value descriptions. Raw codes remain uninterpreted. Amounts use a declared fictional common price scale; no currency, tax, charge, unit-code interpretation or full purchase-order total is inferred.
+The analysis uses public segment IDs and raw positional fields. It embeds no
+copyrighted ASC X12 implementation-guide text, loop names or code-value descriptions.
+Raw codes remain uninterpreted. Price calculations use a declared fictional common
+scale; they infer no currency, tax, charge, unit-code meaning or complete order total.
 
 ## Reading the results
 
-Seven inventoried inputs produce five envelope rows and eight shaped lines. The wrong-count file yields two lines but fails a structural check. The bad-quantity file passes envelope checks but has one unparseable quantity; that value and its line amount remain NULL.
+Notebook 01 inventories seven inputs before decoding. Six supplied files contain
+55 complete-projection segment rows, five transaction envelopes and eight shaped
+PO1 lines. The no-transaction file still contains four envelope segments. The
+`no-se` fixture is byte-truncated **inside N1, before any PO1 line**, as well as
+missing SE and outer trailers. Its zero shaped rows do not prove a general SE-required
+rule. The complete projection retains five source segments for that input.
 
-The pinned release emits line items when SE is present but GE/IEA are missing. When SE is missing too, it emits an envelope row but no shaped lines. The no-transaction file emits neither; the missing record has no file. Starting from the input inventory preserves all of these distinct states.
+Transaction-type routing maps five inputs to `read_850`; this does not validate
+structure or numeric fields. Source path remains part of every identity because
+test alternatives reuse envelope control numbers. Complete document segment indices
+and transaction-local element indices have different scopes and are not joined.
+All eight shaped line quantities/prices agree with the raw positional projection,
+including the unparseable quantity. Repeated/composite fields or nonunique line
+numbers would require fuller keys than this fixture-specific reconciliation.
 
-Joins include source path and the full carried envelope key. The deliberately repeated control identifiers across files therefore do not multiply lines. The matrix distinguishes true, false and unavailable flags. Passing these flags establishes only structural count/control agreement, not full EDI business compliance.
+Default `ALLOW_INCOMPLETE=False` selects three lines totaling **139.95 fictional
+price units**. Setting it to True selects five totaling **234.90** by previewing
+numeric lines from the file missing only outer trailers. Known failed checks remain
+excluded and the invalid numeric value stays NULL. No lines are created for the
+byte-truncated input. This is an audit sensitivity experiment, not acceptance policy
+or procurement spend. Zero selected amount means no selected amount, not a zero-value
+order or an estimate for missing lines.
 
-The selected subtotal is computed only from nonnegative, parseable decimal quantities and unit prices in eligible envelopes. A zero selected subtotal means no selected contribution, not that an order is worth zero. Separate columns retain extracted, invalid and withheld line counts; an input with no known numeric line amounts has a NULL full-known subtotal.
+Notebook 02 preserves both input hashes and envelopes, then selects one alternative.
+Both pass the UNT count check with **three message segments**. With `ESCAPE_PLUS=True`,
+FTX position 4 contains `Subtotal 5+ fee`; four top-level FTX positions include two
+empty strings, and the message has 11 decoded element/component rows. False splits
+that text into positions 4 and 5, giving five FTX positions and 12 decoded value rows.
+The separator tuple and control-segment values remain unchanged. Empty strings are
+explicit positions, not NULLs. UNH contains a composite element, so decoded value-row
+counts differ from top-level positions and segment counts.
 
-The default selects three lines with an audit sum of 139.95 fixture price units. Previewing incomplete outer envelopes selects five lines and 234.90 units. The wrong count, invalid quantity, no-transaction record, missing input and missing-SE extraction behavior remain unchanged. These sums reconcile the synthetic alternatives and must not be interpreted as procurement spend or estimated value of omitted data.
+A passing envelope count cannot establish intended field boundaries, full EDI
+business-rule compliance or agreement of every outer control. The delimiter scalar
+does not expose a release-character field; the authored UNA prefix supplies that
+context. The shaped-reader reference has no ORDERS row, which is a coverage distinction
+rather than a rejection of the dedicated EDIFACT parser. No write or repair is performed.
 
-## Validation
+Existing green [source CI at 73f1215](https://github.com/Query-farm/vgi-x12/actions/runs/43580885430)
+is reused. Worker source and root dependencies are unchanged, so no rebuild,
+full-suite repetition or source/container CI is triggered. Prior gates passed
+52 Rust tests, 217 stdio / 235 HTTP / 217 Unix SQL assertions, build/Clippy/rustfmt/
+rustdoc and metadata 100/100 L2 with zero findings. Notebook validation includes both
+defaults and detached experiments, three default SVGs and matching experiment
+figures, runner protections, coverage receipts and one fresh preloaded bootstrap.
 
-The default completed in 8.1 seconds and the detached incomplete-envelope preview in 12.8 seconds. Both passed 12 SQL checks, input/line reconciliation and exact decimal totals. Four chart renderings and three runner preservation guards were reviewed. Raw envelope and line displays and the evidence chart are identical across settings. All six EDI fixtures regenerate byte-for-byte; the complete fixture matches the original source.
-
-Source validation passed 52 Rust tests, 217 stdio / 235 HTTP / 217 Unix SQL assertions (nine cases per transport), the locked release build, Clippy, rustfmt and warning-clean rustdoc. The repository metadata gate passed at 100/100 L2 with zero findings. Notebook Ruff and structural review passed. Worker source, tests, data, Cargo manifests and root lockfile remain unchanged.
-
-Official Query.Farm Strata Sun and VGI artwork is copied unchanged from the approved assets. Linked Query.Farm branding appears at the top and final bottom.
+The initial v0.5.0 cold download encountered GitHub's shared anonymous API rate limit.
+A test subprocess used existing authorized GitHub authentication solely to fetch and
+verify that public release; no credential was written, printed or added to the
+notebooks. Subsequent anonymous ATTACH and SQL succeeded from that verified binary
+cache. Cold companion/bootstrap tests are separate from a cold anonymous worker download.

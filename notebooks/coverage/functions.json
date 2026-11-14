@@ -1,0 +1,677 @@
+{
+  "query": "SELECT * FROM duckdb_functions() WHERE database_name='x12' ORDER BY schema_name,function_name,parameter_types",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "schema_name",
+    "function_name",
+    "alias_of",
+    "function_type",
+    "description",
+    "comment",
+    "tags",
+    "return_type",
+    "parameters",
+    "parameter_types",
+    "varargs",
+    "macro_definition",
+    "has_side_effects",
+    "internal",
+    "extension_name",
+    "function_oid",
+    "examples",
+    "stability",
+    "categories"
+  ],
+  "rows": [
+    [
+      "x12",
+      "22594",
+      "main",
+      "copy_x12",
+      null,
+      "table",
+      "Import and export complete X12 segment rows through the catalog's COPY format.",
+      null,
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Import and export X12 with the alias-scoped x12 COPY format. FROM emits the complete read_x12 schema. TO consumes ordered segment_id, elements, element_separator, and segment_terminator columns. Paths are worker-local. The writer validates complete ASCII envelopes and publishes only after validation; recalculate_counts updates trailer counts without changing control numbers. Use read_x12 for ordinary SELECT queries.",
+        "vgi.doc_md": "## X12 COPY format\n\nThe registered handler is invoked by DuckDB's COPY machinery. It cannot be called directly as a table function. Discover the alias-scoped format using the example query.\n\n**Import.** Create the destination table from the schema of `read_x12(input)` with zero rows, then import a worker-local file or glob. Column names, order, and types must match. Reads retain malformed segments for inspection and materialize the input in memory.\n\n**Export.** Supply the four named columns `segment_id`, `elements`, `element_separator`, and `segment_terminator`, ordered by document and segment index. Other columns are informational. ISA11 and ISA16 preserve repetition and component delimiters. Empty element strings are retained; NULL values are rejected.\n\n**Validation and publication.** The writer checks ASCII text, fixed-width ISA, envelope nesting, counts, and control matches across batches. The explicit `recalculate_counts` option updates SE01/GE01/IEA01 only. A same-directory temporary file replaces the target after validation completes; failure preserves the old target. Empty input writes an empty file. This is structural validation; transaction-specific content rules remain outside scope. Formatting whitespace is normalized. EDIFACT and binary payloads are unsupported. See the repository README for the complete edit-and-export workflow.",
+        "vgi.example_queries": "[{\"description\":\"Discover the X12 COPY format, supported directions, ordering, and options.\",\"sql\":\"SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"copy\",\"segments\",\"envelopes\",\"local files\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"document_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based document ordinal within this invocation; distinguishes inline and repeated input paths.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based segment ordinal across the whole document, including all envelopes. Order by document_index, segment_index before COPY TO.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier, including ISA, GS, ST, SE, GE, and IEA.\"},{\"name\":\"elements\",\"type\":\"VARCHAR[]\",\"description\":\"All positional element values, preserving empty values, padding, composites, and repetitions as unsplit text.\"},{\"name\":\"byte_offset\",\"type\":\"BIGINT\",\"description\":\"Start byte offset in the source document; informational after edits.\"},{\"name\":\"element_separator\",\"type\":\"VARCHAR\",\"description\":\"Element separator in force for this row's interchange.\"},{\"name\":\"segment_terminator\",\"type\":\"VARCHAR\",\"description\":\"Segment terminator in force for this row's interchange. Component and repetition separators remain in ISA16 and ISA11.\"}]",
+        "vgi.title": "X12 COPY"
+      },
+      null,
+      [],
+      [],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22730,
+      [
+        "SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "copy_x12",
+      null,
+      "table",
+      "Import and export complete X12 segment rows through the catalog's COPY format.",
+      null,
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Import and export X12 with the alias-scoped x12 COPY format. FROM emits the complete read_x12 schema. TO consumes ordered segment_id, elements, element_separator, and segment_terminator columns. Paths are worker-local. The writer validates complete ASCII envelopes and publishes only after validation; recalculate_counts updates trailer counts without changing control numbers. Use read_x12 for ordinary SELECT queries.",
+        "vgi.doc_md": "## X12 COPY format\n\nThe registered handler is invoked by DuckDB's COPY machinery. It cannot be called directly as a table function. Discover the alias-scoped format using the example query.\n\n**Import.** Create the destination table from the schema of `read_x12(input)` with zero rows, then import a worker-local file or glob. Column names, order, and types must match. Reads retain malformed segments for inspection and materialize the input in memory.\n\n**Export.** Supply the four named columns `segment_id`, `elements`, `element_separator`, and `segment_terminator`, ordered by document and segment index. Other columns are informational. ISA11 and ISA16 preserve repetition and component delimiters. Empty element strings are retained; NULL values are rejected.\n\n**Validation and publication.** The writer checks ASCII text, fixed-width ISA, envelope nesting, counts, and control matches across batches. The explicit `recalculate_counts` option updates SE01/GE01/IEA01 only. A same-directory temporary file replaces the target after validation completes; failure preserves the old target. Empty input writes an empty file. This is structural validation; transaction-specific content rules remain outside scope. Formatting whitespace is normalized. EDIFACT and binary payloads are unsupported. See the repository README for the complete edit-and-export workflow.",
+        "vgi.example_queries": "[{\"description\":\"Discover the X12 COPY format, supported directions, ordering, and options.\",\"sql\":\"SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"copy\",\"segments\",\"envelopes\",\"local files\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"document_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based document ordinal within this invocation; distinguishes inline and repeated input paths.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based segment ordinal across the whole document, including all envelopes. Order by document_index, segment_index before COPY TO.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier, including ISA, GS, ST, SE, GE, and IEA.\"},{\"name\":\"elements\",\"type\":\"VARCHAR[]\",\"description\":\"All positional element values, preserving empty values, padding, composites, and repetitions as unsplit text.\"},{\"name\":\"byte_offset\",\"type\":\"BIGINT\",\"description\":\"Start byte offset in the source document; informational after edits.\"},{\"name\":\"element_separator\",\"type\":\"VARCHAR\",\"description\":\"Element separator in force for this row's interchange.\"},{\"name\":\"segment_terminator\",\"type\":\"VARCHAR\",\"description\":\"Segment terminator in force for this row's interchange. Component and repetition separators remain in ISA16 and ISA11.\"}]",
+        "vgi.title": "X12 COPY"
+      },
+      null,
+      [
+        "recalculate_counts"
+      ],
+      [
+        "BOOLEAN"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22730,
+      [
+        "SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "delimiters",
+      null,
+      "scalar",
+      "Sniff the X12/EDIFACT delimiters from inline content into a STRUCT(element, segment, component, repetition)",
+      null,
+      {
+        "vgi.category": "Interchange sniffers",
+        "vgi.doc_llm": "Discover the delimiter bytes governing an inline X12 or UN/EDIFACT interchange and return them as a `STRUCT(element, segment, component, repetition)`, each a 1-char `VARCHAR`. For X12 the bytes are read deterministically from the fixed-width ISA (element = byte after 'ISA', component = ISA16, segment = byte after ISA16, repetition = ISA11 or NULL for the version-4010 'U' placeholder); for EDIFACT they come from the optional UNA service-string advice (or the EDIFACT defaults). `repetition` is NULL when no repetition separator is in use. Content that is not a recognizable interchange returns a NULL struct (never an error). Pass the content from a column, e.g. via read_text().",
+        "vgi.doc_md": "Sniff the EDI delimiters from inline content into a `STRUCT(element, segment, component, repetition)`; `repetition` is NULL when unused, and unrecognized content returns NULL.",
+        "vgi.example_queries": "[{\"description\":\"Sniff the element separator (ISA byte-3) from a canonical ISA header.\",\"sql\":\"SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep;\"}]",
+        "vgi.keywords": "[\"delimiters\",\"sniff\",\"x12\",\"edifact\",\"isa\",\"una\",\"element separator\",\"segment terminator\",\"component separator\",\"repetition separator\",\"struct\"]",
+        "vgi.title": "Sniff EDI Delimiters"
+      },
+      "STRUCT(element VARCHAR, segment VARCHAR, component VARCHAR, repetition VARCHAR)",
+      [
+        "content"
+      ],
+      [
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22728,
+      [
+        "SELECT (x12.main.delimiters('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~')).element AS element_sep;"
+      ],
+      "CONSISTENT",
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "edifact_envelope",
+      null,
+      "table",
+      "One row per UN/EDIFACT message: UNB/UNG/UNH envelope metadata + UNT validity",
+      null,
+      {
+        "vgi.category": "UN/EDIFACT",
+        "vgi.doc_llm": "Summarize UN/EDIFACT interchange file(s) as one row per UNH message \u2014 the routing / triage view. The single `input` argument is a file path/glob or inline content (auto-detected). Columns expose the UNB interchange header (control reference, syntax id/version, sender/recipient, date/time), the optional UNG group reference, the UNH message header (reference number, message type / version / release / controlling agency), the actual UNH..UNT segment_count, and the unt_count_ok structural flag (NULL when no UNT). Structural validation only.",
+        "vgi.doc_md": "One row per UN/EDIFACT message with UNB/UNG/UNH metadata and the UNT structural count flag. Reads a file path/glob or inline content.",
+        "vgi.example_queries": "[{\"description\":\"Summarize an inline EDIFACT ORDERS interchange as one envelope row.\",\"sql\":\"SELECT interchange_ctrl, syntax_id, sender_id, receiver_id FROM x12.main.edifact_envelope('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')\"}]",
+        "vgi.keywords": "[\"edifact\",\"un/edifact\",\"envelope\",\"unb\",\"ung\",\"unh\",\"unt\",\"message type\",\"control reference\",\"orders\",\"invoic\",\"routing\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"UNB05 \u2014 interchange control reference.\"},{\"name\":\"syntax_id\",\"type\":\"VARCHAR\",\"description\":\"UNB01-1 \u2014 syntax identifier (e.g. 'UNOA').\"},{\"name\":\"syntax_version\",\"type\":\"VARCHAR\",\"description\":\"UNB01-2 \u2014 syntax version number.\"},{\"name\":\"sender_id\",\"type\":\"VARCHAR\",\"description\":\"UNB02-1 \u2014 interchange sender identification.\"},{\"name\":\"receiver_id\",\"type\":\"VARCHAR\",\"description\":\"UNB03-1 \u2014 interchange recipient identification.\"},{\"name\":\"unb_date\",\"type\":\"VARCHAR\",\"description\":\"UNB04-1 \u2014 preparation date (YYMMDD).\"},{\"name\":\"unb_time\",\"type\":\"VARCHAR\",\"description\":\"UNB04-2 \u2014 preparation time (HHMM).\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"UNG05 \u2014 functional group reference (NULL when no UNG).\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"UNH01 \u2014 message reference number.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"UNH02-1 \u2014 message type ('ORDERS','INVOIC',\u2026).\"},{\"name\":\"message_version\",\"type\":\"VARCHAR\",\"description\":\"UNH02-2 \u2014 message version number.\"},{\"name\":\"message_release\",\"type\":\"VARCHAR\",\"description\":\"UNH02-3 \u2014 message release number.\"},{\"name\":\"controlling_agency\",\"type\":\"VARCHAR\",\"description\":\"UNH02-4 \u2014 controlling agency (e.g. 'UN').\"},{\"name\":\"segment_count\",\"type\":\"BIGINT\",\"description\":\"Actual UNH..UNT segment count (what UNT01 must equal).\"},{\"name\":\"unt_count_ok\",\"type\":\"BOOLEAN\",\"description\":\"Whether UNT01 equals the actual segment count; NULL if no UNT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"}]",
+        "vgi.title": "EDIFACT Envelope"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22731,
+      [
+        "SELECT interchange_ctrl, syntax_id, sender_id, receiver_id FROM x12.main.edifact_envelope('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "edifact_segments",
+      null,
+      "table",
+      "Explode a UN/EDIFACT interchange into one row per element",
+      null,
+      {
+        "vgi.category": "UN/EDIFACT",
+        "vgi.doc_llm": "Explode UN/EDIFACT interchange file(s) into one row per element. The input is a file path/glob or inline content (auto-detected by the ISA/UNA/UNB prefix). The delimiters come from the optional UNA service-string advice (overriding the EDIFACT defaults), and the release/escape byte (default '?') is un-escaped so an escaped delimiter is treated as data. Each row carries the envelope keys (interchange_ctrl = UNB05 control reference, transaction_ctrl = UNH01, transaction_type = UNH02 message type) plus source_path, segment_index, the raw segment_id (tag), the 1-based element_index, a component_index (NULL unless the element is composite), and the raw value.",
+        "vgi.doc_md": "One row per UN/EDIFACT element, with UNA-driven delimiters, release-char un-escaping, and envelope keys carried down. Reads a file path/glob or inline content.",
+        "vgi.example_queries": "[{\"description\":\"Explode an inline EDIFACT ORDERS interchange into one row per element.\",\"sql\":\"SELECT segment_id, element_index, value FROM x12.main.edifact_segments('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')\"}]",
+        "vgi.keywords": "[\"edifact\",\"un/edifact\",\"edi\",\"segments\",\"elements\",\"explode\",\"una\",\"unb\",\"unh\",\"orders\",\"invoic\",\"desadv\",\"release character\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"0-based ordinal of this element's segment within its UNH..UNT message.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw EDIFACT segment tag (e.g. 'BGM', 'DTM', 'NAD').\"},{\"name\":\"element_index\",\"type\":\"INTEGER\",\"description\":\"1-based data element position within the segment.\"},{\"name\":\"component_index\",\"type\":\"INTEGER\",\"description\":\"1-based component (sub-element) position; NULL unless the element is composite.\"},{\"name\":\"value\",\"type\":\"VARCHAR\",\"description\":\"The raw element/component value, with the EDIFACT release char applied.\"}]",
+        "vgi.title": "EDIFACT Segments & Elements"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22732,
+      [
+        "SELECT segment_id, element_index, value FROM x12.main.edifact_segments('UNA:+.? ''UNB+UNOA:1+SENDER+RECEIVER+240101:1200+REF1''UNH+MSG1+ORDERS:D:96A:UN''BGM+220+PO12345+9''DTM+137:20240101:102''NAD+BY+++ACME CORP''UNT+4+MSG1''UNZ+1+REF1''')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "envelope",
+      null,
+      "table",
+      "One row per ST transaction: ISA/GS/ST envelope metadata + structural validity flags",
+      null,
+      {
+        "vgi.category": "Envelope & structure",
+        "vgi.doc_llm": "Summarize ANSI ASC X12 EDI file(s) as one row per ST transaction set \u2014 the routing / triage view. The single `input` argument is a file path/glob or inline content (auto-detected by the ISA/UNA/UNB magic prefix). Columns expose the ISA interchange header (control number, sender/receiver qualifiers + IDs, date/time, version, P/T usage indicator), the GS functional group header (functional id, app sender/receiver, date, GS08 version), the ST header (control number, transaction type, impl reference), the actual ST..SE segment_count, and the structural validity flags se_count_ok / ge_count_ok / iea_count_ok / se_ctrl_match / ge_ctrl_match / iea_ctrl_match (NULL when the matching trailer is absent \u2014 e.g. a truncated interchange). This is structural validation only (segment counts + control-number matching) \u2014 no loop or code-set rules.",
+        "vgi.doc_md": "One row per X12 transaction set with ISA/GS/ST metadata and the SE/GE/IEA structural count + control-match validity flags. Reads a file path/glob or inline content.",
+        "vgi.example_queries": "[{\"description\":\"Summarize an inline 837 interchange as one envelope row with structural validity flags.\",\"sql\":\"SELECT interchange_ctrl, transaction_type, segment_count, se_count_ok FROM x12.main.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~SV1*HC:99213*200*UN*1~SE*5*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"envelope\",\"isa\",\"gs\",\"st\",\"routing\",\"triage\",\"control number\",\"validation\",\"se count\",\"ge count\",\"iea\",\"sender\",\"receiver\",\"usage indicator\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number.\"},{\"name\":\"sender_qual\",\"type\":\"VARCHAR\",\"description\":\"ISA05 \u2014 interchange sender ID qualifier.\"},{\"name\":\"sender_id\",\"type\":\"VARCHAR\",\"description\":\"ISA06 \u2014 interchange sender ID (15-char, raw).\"},{\"name\":\"receiver_qual\",\"type\":\"VARCHAR\",\"description\":\"ISA07 \u2014 interchange receiver ID qualifier.\"},{\"name\":\"receiver_id\",\"type\":\"VARCHAR\",\"description\":\"ISA08 \u2014 interchange receiver ID (raw).\"},{\"name\":\"isa_date\",\"type\":\"VARCHAR\",\"description\":\"ISA09 \u2014 interchange date (YYMMDD).\"},{\"name\":\"isa_time\",\"type\":\"VARCHAR\",\"description\":\"ISA10 \u2014 interchange time (HHMM).\"},{\"name\":\"isa_version\",\"type\":\"VARCHAR\",\"description\":\"ISA12 \u2014 interchange control version number (e.g. '00501').\"},{\"name\":\"usage_indicator\",\"type\":\"VARCHAR\",\"description\":\"ISA15 \u2014 usage indicator ('P' production, 'T' test).\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number.\"},{\"name\":\"gs_functional_id\",\"type\":\"VARCHAR\",\"description\":\"GS01 \u2014 functional identifier code (e.g. HP/HC/HS/HB/PO/FA).\"},{\"name\":\"gs_app_sender\",\"type\":\"VARCHAR\",\"description\":\"GS02 \u2014 application sender code.\"},{\"name\":\"gs_app_receiver\",\"type\":\"VARCHAR\",\"description\":\"GS03 \u2014 application receiver code.\"},{\"name\":\"gs_date\",\"type\":\"VARCHAR\",\"description\":\"GS04 \u2014 functional group date (CCYYMMDD).\"},{\"name\":\"gs_version\",\"type\":\"VARCHAR\",\"description\":\"GS08 \u2014 version / release / industry identifier (raw string).\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026).\"},{\"name\":\"st_impl_ref\",\"type\":\"VARCHAR\",\"description\":\"ST03 \u2014 implementation convention reference (optional).\"},{\"name\":\"segment_count\",\"type\":\"BIGINT\",\"description\":\"Actual ST..SE segment count (what SE01 must equal).\"},{\"name\":\"se_count_ok\",\"type\":\"BOOLEAN\",\"description\":\"Whether SE01 equals the actual segment count; NULL if no SE.\"},{\"name\":\"ge_count_ok\",\"type\":\"BOOLEAN\",\"description\":\"Whether GE01 equals the group's transaction count; NULL if no GE.\"},{\"name\":\"iea_count_ok\",\"type\":\"BOOLEAN\",\"description\":\"Whether IEA01 equals the interchange's group count; NULL if no IEA.\"},{\"name\":\"se_ctrl_match\",\"type\":\"BOOLEAN\",\"description\":\"Whether SE02 matches ST02; NULL if no SE.\"},{\"name\":\"ge_ctrl_match\",\"type\":\"BOOLEAN\",\"description\":\"Whether GE02 matches GS06; NULL if no GE.\"},{\"name\":\"iea_ctrl_match\",\"type\":\"BOOLEAN\",\"description\":\"Whether IEA02 matches ISA13; NULL if no IEA.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"}]",
+        "vgi.title": "X12 Envelope"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22733,
+      [
+        "SELECT interchange_ctrl, transaction_type, segment_count, se_count_ok FROM x12.main.envelope('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~SV1*HC:99213*200*UN*1~SE*5*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_270",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 270",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 270 (read_270) \u2014 a 270 eligibility / benefit inquiry. The single `input` argument takes a file path or glob (e.g. '/data/*.270'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example hl_id, hl_level_code, entity_name, eb_service_type. Columns are named by the PUBLIC segment ID and element position only (e.g. hl_level_code = HL03); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each HL parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `270` (a 270 eligibility / benefit inquiry). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. hl_level_code = HL03) \u2014 such as hl_id, hl_level_code, entity_name, eb_service_type; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 270 interchange through the read_270 shaped view.\",\"sql\":\"SELECT hl_id, hl_level_code, entity_name FROM x12.main.read_270('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*270*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*1*TRACE70*9999999999~EQ*30~SE*10*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"270\",\"read_270\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"hl_id\",\"type\":\"VARCHAR\",\"description\":\"HL01 \u2014 hierarchical ID number.\"},{\"name\":\"hl_parent\",\"type\":\"VARCHAR\",\"description\":\"HL02 \u2014 hierarchical parent ID number.\"},{\"name\":\"hl_level_code\",\"type\":\"VARCHAR\",\"description\":\"HL03 \u2014 hierarchical level code (raw, e.g. 20/21/22/23).\"},{\"name\":\"hl_child_code\",\"type\":\"VARCHAR\",\"description\":\"HL04 \u2014 hierarchical child code (raw).\"},{\"name\":\"entity_qualifier\",\"type\":\"VARCHAR\",\"description\":\"NM101 of the HL's NM1 \u2014 entity identifier code (raw).\"},{\"name\":\"entity_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the HL's NM1 \u2014 entity name (raw).\"},{\"name\":\"entity_id_qualifier\",\"type\":\"VARCHAR\",\"description\":\"NM108 of the HL's NM1 \u2014 identification code qualifier (raw).\"},{\"name\":\"entity_id\",\"type\":\"VARCHAR\",\"description\":\"NM109 of the HL's NM1 \u2014 entity identification code.\"},{\"name\":\"trn_trace\",\"type\":\"VARCHAR\",\"description\":\"TRN02 \u2014 trace number under the HL.\"},{\"name\":\"eb_eligibility_code\",\"type\":\"VARCHAR\",\"description\":\"EB01 \u2014 eligibility/benefit information code (271, raw).\"},{\"name\":\"eb_coverage_level\",\"type\":\"VARCHAR\",\"description\":\"EB02 \u2014 coverage level code (271, raw).\"},{\"name\":\"eb_service_type\",\"type\":\"VARCHAR\",\"description\":\"EB03 \u2014 service type code (271, raw).\"},{\"name\":\"eb_insurance_type\",\"type\":\"VARCHAR\",\"description\":\"EB04 \u2014 insurance type code (271, raw).\"},{\"name\":\"eb_plan_description\",\"type\":\"VARCHAR\",\"description\":\"EB05 \u2014 plan coverage description (271, raw).\"},{\"name\":\"eb_time_qualifier\",\"type\":\"VARCHAR\",\"description\":\"EB06 \u2014 time period qualifier (271, raw).\"},{\"name\":\"eb_benefit_amount\",\"type\":\"VARCHAR\",\"description\":\"EB07 \u2014 benefit amount (271, raw VARCHAR).\"},{\"name\":\"dtp_qualifier\",\"type\":\"VARCHAR\",\"description\":\"DTP01 \u2014 date/time qualifier (raw).\"},{\"name\":\"dtp_date\",\"type\":\"VARCHAR\",\"description\":\"DTP03 \u2014 date value (raw).\"},{\"name\":\"aaa_reject_reason\",\"type\":\"VARCHAR\",\"description\":\"AAA03 \u2014 request validation / reject reason code (raw).\"}]",
+        "vgi.title": "X12 read_270 (270)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22734,
+      [
+        "SELECT hl_id, hl_level_code, entity_name FROM x12.main.read_270('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*270*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*1*TRACE70*9999999999~EQ*30~SE*10*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_271",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 271",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 271 (read_271) \u2014 a 271 eligibility / benefit response. The single `input` argument takes a file path or glob (e.g. '/data/*.271'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example hl_id, entity_name, eb_plan_description, eb_benefit_amount. Columns are named by the PUBLIC segment ID and element position only (e.g. eb_plan_description = EB05); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each HL parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `271` (a 271 eligibility / benefit response). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. eb_plan_description = EB05) \u2014 such as hl_id, entity_name, eb_plan_description, eb_benefit_amount; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 271 interchange through the read_271 shaped view.\",\"sql\":\"SELECT hl_id, entity_name, eb_plan_description FROM x12.main.read_271('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*271*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*2*TRACE55*9999999999~EB*1*IND*30**GOLD PPO~EB*B*IND*30****27.5~DTP*291*D8*20240101~SE*12*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"271\",\"read_271\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"hl_id\",\"type\":\"VARCHAR\",\"description\":\"HL01 \u2014 hierarchical ID number.\"},{\"name\":\"hl_parent\",\"type\":\"VARCHAR\",\"description\":\"HL02 \u2014 hierarchical parent ID number.\"},{\"name\":\"hl_level_code\",\"type\":\"VARCHAR\",\"description\":\"HL03 \u2014 hierarchical level code (raw, e.g. 20/21/22/23).\"},{\"name\":\"hl_child_code\",\"type\":\"VARCHAR\",\"description\":\"HL04 \u2014 hierarchical child code (raw).\"},{\"name\":\"entity_qualifier\",\"type\":\"VARCHAR\",\"description\":\"NM101 of the HL's NM1 \u2014 entity identifier code (raw).\"},{\"name\":\"entity_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the HL's NM1 \u2014 entity name (raw).\"},{\"name\":\"entity_id_qualifier\",\"type\":\"VARCHAR\",\"description\":\"NM108 of the HL's NM1 \u2014 identification code qualifier (raw).\"},{\"name\":\"entity_id\",\"type\":\"VARCHAR\",\"description\":\"NM109 of the HL's NM1 \u2014 entity identification code.\"},{\"name\":\"trn_trace\",\"type\":\"VARCHAR\",\"description\":\"TRN02 \u2014 trace number under the HL.\"},{\"name\":\"eb_eligibility_code\",\"type\":\"VARCHAR\",\"description\":\"EB01 \u2014 eligibility/benefit information code (271, raw).\"},{\"name\":\"eb_coverage_level\",\"type\":\"VARCHAR\",\"description\":\"EB02 \u2014 coverage level code (271, raw).\"},{\"name\":\"eb_service_type\",\"type\":\"VARCHAR\",\"description\":\"EB03 \u2014 service type code (271, raw).\"},{\"name\":\"eb_insurance_type\",\"type\":\"VARCHAR\",\"description\":\"EB04 \u2014 insurance type code (271, raw).\"},{\"name\":\"eb_plan_description\",\"type\":\"VARCHAR\",\"description\":\"EB05 \u2014 plan coverage description (271, raw).\"},{\"name\":\"eb_time_qualifier\",\"type\":\"VARCHAR\",\"description\":\"EB06 \u2014 time period qualifier (271, raw).\"},{\"name\":\"eb_benefit_amount\",\"type\":\"VARCHAR\",\"description\":\"EB07 \u2014 benefit amount (271, raw VARCHAR).\"},{\"name\":\"dtp_qualifier\",\"type\":\"VARCHAR\",\"description\":\"DTP01 \u2014 date/time qualifier (raw).\"},{\"name\":\"dtp_date\",\"type\":\"VARCHAR\",\"description\":\"DTP03 \u2014 date value (raw).\"},{\"name\":\"aaa_reject_reason\",\"type\":\"VARCHAR\",\"description\":\"AAA03 \u2014 request validation / reject reason code (raw).\"}]",
+        "vgi.title": "X12 read_271 (271)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22735,
+      [
+        "SELECT hl_id, entity_name, eb_plan_description FROM x12.main.read_271('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*271*0001~HL*1**20*1~NM1*PR*2*ACME PAYER*****PI*PAYER01~HL*2*1*21*1~NM1*1P*2*PROVIDER GRP*****XX*1444444444~HL*3*2*22*0~NM1*IL*1*DOE*JOHN****MI*MEMBER99~TRN*2*TRACE55*9999999999~EB*1*IND*30**GOLD PPO~EB*B*IND*30****27.5~DTP*291*D8*20240101~SE*12*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_835",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 835",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 835 (read_835) \u2014 an 835 remittance advice / ERA. The single `input` argument takes a file path or glob (e.g. '/data/*.835'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example clp_claim_id, clp_total_paid, payer_name, cas_reason_code, svc_paid. Columns are named by the PUBLIC segment ID and element position only (e.g. clp_total_paid = CLP04); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each CLP parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `835` (an 835 remittance advice / ERA). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. clp_total_paid = CLP04) \u2014 such as clp_claim_id, clp_total_paid, payer_name, cas_reason_code, svc_paid; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 835 interchange through the read_835 shaped view.\",\"sql\":\"SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~SVC*HC:99213*200*160**1~DTM*232*20240110~CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~SE*11*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"835\",\"read_835\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"bpr_total_paid\",\"type\":\"VARCHAR\",\"description\":\"BPR02 \u2014 total actual provider payment amount (raw VARCHAR; cast as needed).\"},{\"name\":\"bpr_credit_debit\",\"type\":\"VARCHAR\",\"description\":\"BPR03 \u2014 credit/debit flag (raw code).\"},{\"name\":\"bpr_payment_method\",\"type\":\"VARCHAR\",\"description\":\"BPR04 \u2014 payment method code (raw, e.g. ACH/CHK).\"},{\"name\":\"bpr_payment_date\",\"type\":\"VARCHAR\",\"description\":\"BPR16 \u2014 payment effective date (raw CCYYMMDD).\"},{\"name\":\"trn_trace_number\",\"type\":\"VARCHAR\",\"description\":\"TRN02 \u2014 reassociation trace number.\"},{\"name\":\"trn_payer_id\",\"type\":\"VARCHAR\",\"description\":\"TRN03 \u2014 originating company / payer identifier.\"},{\"name\":\"payer_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the NM1*PR loop \u2014 payer name (raw).\"},{\"name\":\"payee_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the NM1*PE loop \u2014 payee name (raw).\"},{\"name\":\"payee_npi\",\"type\":\"VARCHAR\",\"description\":\"NM109 of the NM1*PE loop \u2014 payee identifier (e.g. NPI).\"},{\"name\":\"clp_claim_id\",\"type\":\"VARCHAR\",\"description\":\"CLP01 \u2014 patient control number (claim id).\"},{\"name\":\"clp_status_code\",\"type\":\"VARCHAR\",\"description\":\"CLP02 \u2014 claim status code (raw).\"},{\"name\":\"clp_total_charge\",\"type\":\"VARCHAR\",\"description\":\"CLP03 \u2014 total submitted charge (raw VARCHAR).\"},{\"name\":\"clp_total_paid\",\"type\":\"VARCHAR\",\"description\":\"CLP04 \u2014 total paid amount (raw VARCHAR).\"},{\"name\":\"clp_patient_resp\",\"type\":\"VARCHAR\",\"description\":\"CLP05 \u2014 patient responsibility amount (raw VARCHAR).\"},{\"name\":\"clp_filing_code\",\"type\":\"VARCHAR\",\"description\":\"CLP06 \u2014 claim filing indicator code (raw).\"},{\"name\":\"clp_payer_claim_control\",\"type\":\"VARCHAR\",\"description\":\"CLP07 \u2014 payer claim control number.\"},{\"name\":\"clp_facility_code\",\"type\":\"VARCHAR\",\"description\":\"CLP08 \u2014 facility type / place-of-service code (raw).\"},{\"name\":\"cas_group_code\",\"type\":\"VARCHAR\",\"description\":\"CAS01 \u2014 claim-adjustment group code (raw).\"},{\"name\":\"cas_reason_code\",\"type\":\"VARCHAR\",\"description\":\"CAS02 \u2014 claim-adjustment reason code (raw).\"},{\"name\":\"cas_amount\",\"type\":\"VARCHAR\",\"description\":\"CAS03 \u2014 adjustment amount (raw VARCHAR).\"},{\"name\":\"svc_procedure\",\"type\":\"VARCHAR\",\"description\":\"SVC01 \u2014 service procedure composite (raw, component-joined).\"},{\"name\":\"svc_charge\",\"type\":\"VARCHAR\",\"description\":\"SVC02 \u2014 line item charge amount (raw VARCHAR).\"},{\"name\":\"svc_paid\",\"type\":\"VARCHAR\",\"description\":\"SVC03 \u2014 line item paid amount (raw VARCHAR).\"},{\"name\":\"svc_units\",\"type\":\"VARCHAR\",\"description\":\"SVC05 \u2014 units of service (raw VARCHAR).\"},{\"name\":\"ref_qualifier\",\"type\":\"VARCHAR\",\"description\":\"REF01 \u2014 reference identification qualifier (raw).\"},{\"name\":\"ref_value\",\"type\":\"VARCHAR\",\"description\":\"REF02 \u2014 reference identification value.\"},{\"name\":\"dtm_qualifier\",\"type\":\"VARCHAR\",\"description\":\"DTM01 \u2014 date/time qualifier (raw).\"},{\"name\":\"dtm_date\",\"type\":\"VARCHAR\",\"description\":\"DTM02 \u2014 date value (raw CCYYMMDD).\"}]",
+        "vgi.title": "X12 read_835 (835)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22736,
+      [
+        "SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*835*0001~BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~SVC*HC:99213*200*160**1~DTM*232*20240110~CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_837",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 837",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 837 (read_837) \u2014 an 837 health-care claim. The single `input` argument takes a file path or glob (e.g. '/data/*.837'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example billing_provider_npi, subscriber_id, clm_total_charge, sv1_procedure. Columns are named by the PUBLIC segment ID and element position only (e.g. clm_total_charge = CLM02); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each CLM parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `837` (an 837 health-care claim). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. clm_total_charge = CLM02) \u2014 such as billing_provider_npi, subscriber_id, clm_total_charge, sv1_procedure; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 837 interchange through the read_837 shaped view.\",\"sql\":\"SELECT billing_provider_npi, subscriber_id, clm_place_of_service FROM x12.main.read_837('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"837\",\"read_837\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"billing_provider_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the NM1*85 loop \u2014 billing provider name (raw).\"},{\"name\":\"billing_provider_npi\",\"type\":\"VARCHAR\",\"description\":\"NM109 of the NM1*85 loop \u2014 billing provider identifier (NPI).\"},{\"name\":\"subscriber_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the NM1*IL loop \u2014 subscriber name (raw).\"},{\"name\":\"subscriber_id\",\"type\":\"VARCHAR\",\"description\":\"NM109 of the NM1*IL loop \u2014 subscriber primary identifier.\"},{\"name\":\"patient_name\",\"type\":\"VARCHAR\",\"description\":\"NM103 of the NM1*QC loop \u2014 patient name (raw).\"},{\"name\":\"sbr_payer_responsibility\",\"type\":\"VARCHAR\",\"description\":\"SBR01 \u2014 payer responsibility sequence code (raw).\"},{\"name\":\"sbr_relationship\",\"type\":\"VARCHAR\",\"description\":\"SBR02 \u2014 individual relationship code (raw).\"},{\"name\":\"sbr_plan_name\",\"type\":\"VARCHAR\",\"description\":\"SBR04 \u2014 insured group / plan name (raw).\"},{\"name\":\"clm_id\",\"type\":\"VARCHAR\",\"description\":\"CLM01 \u2014 patient account / claim submitter identifier.\"},{\"name\":\"clm_total_charge\",\"type\":\"VARCHAR\",\"description\":\"CLM02 \u2014 total claim charge amount (raw VARCHAR).\"},{\"name\":\"clm_place_of_service\",\"type\":\"VARCHAR\",\"description\":\"CLM05 \u2014 health-care service location composite (raw, component-joined).\"},{\"name\":\"clm_provider_signature\",\"type\":\"VARCHAR\",\"description\":\"CLM06 \u2014 provider-signature-on-file indicator (raw).\"},{\"name\":\"hi_diagnosis_qualifier\",\"type\":\"VARCHAR\",\"description\":\"HI01-1 \u2014 diagnosis code-list qualifier (raw).\"},{\"name\":\"hi_diagnosis_code\",\"type\":\"VARCHAR\",\"description\":\"HI01-2 \u2014 diagnosis code (raw).\"},{\"name\":\"sv1_procedure\",\"type\":\"VARCHAR\",\"description\":\"SV101 \u2014 professional service procedure composite (raw, component-joined).\"},{\"name\":\"sv1_charge\",\"type\":\"VARCHAR\",\"description\":\"SV102 \u2014 professional line item charge (raw VARCHAR).\"},{\"name\":\"sv1_units\",\"type\":\"VARCHAR\",\"description\":\"SV104 \u2014 professional service unit count (raw VARCHAR).\"},{\"name\":\"sv2_revenue_code\",\"type\":\"VARCHAR\",\"description\":\"SV201 \u2014 institutional revenue code (raw).\"},{\"name\":\"sv2_procedure\",\"type\":\"VARCHAR\",\"description\":\"SV202 \u2014 institutional procedure composite (raw, component-joined).\"},{\"name\":\"sv2_charge\",\"type\":\"VARCHAR\",\"description\":\"SV203 \u2014 institutional line item charge (raw VARCHAR).\"},{\"name\":\"dtp_qualifier\",\"type\":\"VARCHAR\",\"description\":\"DTP01 \u2014 date/time qualifier (raw).\"},{\"name\":\"dtp_date\",\"type\":\"VARCHAR\",\"description\":\"DTP03 \u2014 date value (raw).\"}]",
+        "vgi.title": "X12 read_837 (837)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22737,
+      [
+        "SELECT billing_provider_npi, subscriber_id, clm_place_of_service FROM x12.main.read_837('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~NM1*IL*1*DOE*JOHN****MI*MEMBER123~SBR*P*18**GROUP PLAN~NM1*QC*1*DOE*JANE~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~DTP*472*D8*20240105~SE*11*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_850",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 850",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 850 (read_850) \u2014 an 850 purchase order. The single `input` argument takes a file path or glob (e.g. '/data/*.850'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example po1_line_number, po1_product_id, po1_quantity, po1_unit_price, n1_name. Columns are named by the PUBLIC segment ID and element position only (e.g. po1_quantity = PO102); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each PO1 parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `850` (an 850 purchase order). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. po1_quantity = PO102) \u2014 such as po1_line_number, po1_product_id, po1_quantity, po1_unit_price, n1_name; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 850 interchange through the read_850 shaped view.\",\"sql\":\"SELECT po1_line_number, po1_product_id, po1_quantity FROM x12.main.read_850('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*850*0001~BEG*00*SA*PO9988**20240101~N1*ST*ACME WAREHOUSE*92*DC07~PER*BD*JANE BUYER*TE*5551234~PO1*1*10*EA*4.50**VP*WIDGET-A~PO1*2*5*EA*9.99**VP*WIDGET-B~SE*7*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"850\",\"read_850\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"beg_purpose_code\",\"type\":\"VARCHAR\",\"description\":\"BEG01 \u2014 transaction set purpose code (raw).\"},{\"name\":\"beg_po_type\",\"type\":\"VARCHAR\",\"description\":\"BEG02 \u2014 purchase order type code (raw).\"},{\"name\":\"beg_po_number\",\"type\":\"VARCHAR\",\"description\":\"BEG03 \u2014 purchase order number.\"},{\"name\":\"beg_date\",\"type\":\"VARCHAR\",\"description\":\"BEG05 \u2014 purchase order date (raw CCYYMMDD).\"},{\"name\":\"n1_entity_code\",\"type\":\"VARCHAR\",\"description\":\"N101 of the most recent N1 \u2014 entity identifier code (raw, e.g. BT/ST/SU/VN).\"},{\"name\":\"n1_name\",\"type\":\"VARCHAR\",\"description\":\"N102 of the most recent N1 \u2014 party name (raw).\"},{\"name\":\"n1_id_qualifier\",\"type\":\"VARCHAR\",\"description\":\"N103 of the most recent N1 \u2014 identification code qualifier (raw).\"},{\"name\":\"n1_id\",\"type\":\"VARCHAR\",\"description\":\"N104 of the most recent N1 \u2014 party identification code.\"},{\"name\":\"per_contact_function\",\"type\":\"VARCHAR\",\"description\":\"PER01 of the most recent PER \u2014 contact function code (raw).\"},{\"name\":\"per_name\",\"type\":\"VARCHAR\",\"description\":\"PER02 of the most recent PER \u2014 contact name.\"},{\"name\":\"per_comm_qualifier\",\"type\":\"VARCHAR\",\"description\":\"PER03 of the most recent PER \u2014 communication number qualifier (raw).\"},{\"name\":\"per_comm_number\",\"type\":\"VARCHAR\",\"description\":\"PER04 of the most recent PER \u2014 communication number.\"},{\"name\":\"po1_line_number\",\"type\":\"VARCHAR\",\"description\":\"PO101 \u2014 assigned line item identifier.\"},{\"name\":\"po1_quantity\",\"type\":\"VARCHAR\",\"description\":\"PO102 \u2014 quantity ordered (raw VARCHAR).\"},{\"name\":\"po1_uom\",\"type\":\"VARCHAR\",\"description\":\"PO103 \u2014 unit/basis of measurement code (raw).\"},{\"name\":\"po1_unit_price\",\"type\":\"VARCHAR\",\"description\":\"PO104 \u2014 unit price (raw VARCHAR).\"},{\"name\":\"po1_product_qualifier\",\"type\":\"VARCHAR\",\"description\":\"PO106 \u2014 product/service ID qualifier (raw).\"},{\"name\":\"po1_product_id\",\"type\":\"VARCHAR\",\"description\":\"PO107 \u2014 product/service identifier.\"}]",
+        "vgi.title": "X12 read_850 (850)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22738,
+      [
+        "SELECT po1_line_number, po1_product_id, po1_quantity FROM x12.main.read_850('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*850*0001~BEG*00*SA*PO9988**20240101~N1*ST*ACME WAREHOUSE*92*DC07~PER*BD*JANE BUYER*TE*5551234~PO1*1*10*EA*4.50**VP*WIDGET-A~PO1*2*5*EA*9.99**VP*WIDGET-B~SE*7*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_997",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 997",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 997 (read_997) \u2014 a 997 functional acknowledgment. The single `input` argument takes a file path or glob (e.g. '/data/*.997'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example ak2_transaction_control, ak5_status, ak9_status, ak3_segment_id. Columns are named by the PUBLIC segment ID and element position only (e.g. ak5_status = AK501); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each AK2 parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `997` (a 997 functional acknowledgment). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. ak5_status = AK501) \u2014 such as ak2_transaction_control, ak5_status, ak9_status, ak3_segment_id; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 997 interchange through the read_997 shaped view.\",\"sql\":\"SELECT ak2_transaction_control, ak5_status, ak3_segment_id FROM x12.main.read_997('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*997*0001~AK1*HC*1~AK2*837*0001~AK3*CLM*22**8~AK4*1*1028*1~AK5*E~AK2*837*0002~AK5*A~AK9*P*2*2*1~SE*10*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"997\",\"read_997\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"ak1_functional_id\",\"type\":\"VARCHAR\",\"description\":\"AK1*01 \u2014 functional identifier code of the acknowledged group (raw).\"},{\"name\":\"ak1_group_control\",\"type\":\"VARCHAR\",\"description\":\"AK1*02 \u2014 group control number being acknowledged.\"},{\"name\":\"ak9_status\",\"type\":\"VARCHAR\",\"description\":\"AK9*01 \u2014 functional group acknowledge code (raw, A/E/R/...).\"},{\"name\":\"ak9_sets_included\",\"type\":\"VARCHAR\",\"description\":\"AK9*02 \u2014 number of transaction sets included (raw).\"},{\"name\":\"ak9_sets_received\",\"type\":\"VARCHAR\",\"description\":\"AK9*03 \u2014 number of received transaction sets (raw).\"},{\"name\":\"ak9_sets_accepted\",\"type\":\"VARCHAR\",\"description\":\"AK9*04 \u2014 number of accepted transaction sets (raw).\"},{\"name\":\"ak2_transaction_set_id\",\"type\":\"VARCHAR\",\"description\":\"AK2*01 \u2014 transaction set identifier code being acknowledged (raw).\"},{\"name\":\"ak2_transaction_control\",\"type\":\"VARCHAR\",\"description\":\"AK2*02 \u2014 transaction set control number being acknowledged.\"},{\"name\":\"ak5_status\",\"type\":\"VARCHAR\",\"description\":\"AK5*01 \u2014 transaction set acknowledge code (raw, A/E/R/...).\"},{\"name\":\"ak3_segment_id\",\"type\":\"VARCHAR\",\"description\":\"AK3*01 \u2014 segment ID in error (raw).\"},{\"name\":\"ak3_segment_position\",\"type\":\"VARCHAR\",\"description\":\"AK3*02 \u2014 segment position in the transaction set (raw).\"},{\"name\":\"ak3_error_code\",\"type\":\"VARCHAR\",\"description\":\"AK3*04 \u2014 segment syntax error code (raw).\"},{\"name\":\"ak4_element_position\",\"type\":\"VARCHAR\",\"description\":\"AK4*01 \u2014 element position in the segment (raw, composite).\"},{\"name\":\"ak4_error_code\",\"type\":\"VARCHAR\",\"description\":\"AK4*03 \u2014 data element syntax error code (raw).\"}]",
+        "vgi.title": "X12 read_997 (997)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22739,
+      [
+        "SELECT ak2_transaction_control, ak5_status, ak3_segment_id FROM x12.main.read_997('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*997*0001~AK1*HC*1~AK2*837*0001~AK3*CLM*22**8~AK4*1*1028*1~AK5*E~AK2*837*0002~AK5*A~AK9*P*2*2*1~SE*10*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_999",
+      null,
+      "table",
+      "Shaped positional view of X12 transaction set 999",
+      null,
+      {
+        "vgi.category": "Shaped transaction views",
+        "vgi.doc_llm": "Shaped, relational view of X12 transaction set 999 (read_999) \u2014 a 999 implementation acknowledgment. The single `input` argument takes a file path or glob (e.g. '/data/*.999'), or inline `VARCHAR`/`BLOB` content (auto-detected by the ISA/UNA/UNB prefix). Every row carries the five envelope keys (interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type, source_path), then this set's positional columns \u2014 for example ak2_transaction_control, ik5_status, ik3_segment_id, ak9_status. Columns are named by the PUBLIC segment ID and element position only (e.g. ik5_status = IK501); raw codes are surfaced verbatim, so code-value translation needs your own licensed X12 reference. Each AK2 parent starts a logical row group; repeating children fan out to one row each sharing the parent's keys, so re-aggregate with GROUP BY on the parent id. Structural / positional only \u2014 no TR3 loop or code-set rules.",
+        "vgi.doc_md": "Shaped positional view of X12 `999` (a 999 implementation acknowledgment). Carries the five envelope keys plus positional columns named by public segment ID and element position (e.g. ik5_status = IK501) \u2014 such as ak2_transaction_control, ik5_status, ik3_segment_id, ak9_status; raw codes verbatim. Reads a file path/glob, inline `VARCHAR` content, or a `BLOB`.",
+        "vgi.example_queries": "[{\"description\":\"Project an inline 999 interchange through the read_999 shaped view.\",\"sql\":\"SELECT ak2_transaction_control, ik3_segment_id, ik5_status FROM x12.main.read_999('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*999*0001~AK1*HC*1~AK2*837*0001~IK3*NM1*8**8~IK4*2*1037*7~IK5*R~AK9*R*1*1*0~SE*8*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"999\",\"read_999\",\"shaped\",\"healthcare edi\",\"claim\",\"remittance\",\"eligibility\",\"purchase order\",\"acknowledgement\",\"parse edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"ak1_functional_id\",\"type\":\"VARCHAR\",\"description\":\"AK1*01 \u2014 functional identifier code of the acknowledged group (raw).\"},{\"name\":\"ak1_group_control\",\"type\":\"VARCHAR\",\"description\":\"AK1*02 \u2014 group control number being acknowledged.\"},{\"name\":\"ak9_status\",\"type\":\"VARCHAR\",\"description\":\"AK9*01 \u2014 functional group acknowledge code (raw).\"},{\"name\":\"ak9_sets_included\",\"type\":\"VARCHAR\",\"description\":\"AK9*02 \u2014 number of transaction sets included (raw).\"},{\"name\":\"ak9_sets_received\",\"type\":\"VARCHAR\",\"description\":\"AK9*03 \u2014 number of received transaction sets (raw).\"},{\"name\":\"ak9_sets_accepted\",\"type\":\"VARCHAR\",\"description\":\"AK9*04 \u2014 number of accepted transaction sets (raw).\"},{\"name\":\"ak2_transaction_set_id\",\"type\":\"VARCHAR\",\"description\":\"AK2*01 \u2014 transaction set identifier code being acknowledged (raw).\"},{\"name\":\"ak2_transaction_control\",\"type\":\"VARCHAR\",\"description\":\"AK2*02 \u2014 transaction set control number being acknowledged.\"},{\"name\":\"ik5_status\",\"type\":\"VARCHAR\",\"description\":\"IK5*01 \u2014 transaction set acknowledge code (raw).\"},{\"name\":\"ik3_segment_id\",\"type\":\"VARCHAR\",\"description\":\"IK3*01 \u2014 segment ID in error (raw).\"},{\"name\":\"ik3_segment_position\",\"type\":\"VARCHAR\",\"description\":\"IK3*02 \u2014 segment position in the transaction set (raw).\"},{\"name\":\"ik3_error_code\",\"type\":\"VARCHAR\",\"description\":\"IK3*04 \u2014 implementation segment syntax error code (raw).\"},{\"name\":\"ik4_element_position\",\"type\":\"VARCHAR\",\"description\":\"IK4*01 \u2014 element position in the segment (raw, composite).\"},{\"name\":\"ik4_error_code\",\"type\":\"VARCHAR\",\"description\":\"IK4*03 \u2014 implementation data element syntax error code (raw).\"}]",
+        "vgi.title": "X12 read_999 (999)"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22740,
+      [
+        "SELECT ak2_transaction_control, ik3_segment_id, ik5_status FROM x12.main.read_999('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*999*0001~AK1*HC*1~AK2*837*0001~IK3*NM1*8**8~IK4*2*1037*7~IK5*R~AK9*R*1*1*0~SE*8*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "read_x12",
+      null,
+      "table",
+      "Read complete X12 segment rows, including envelopes, ordering, and delimiter metadata.",
+      null,
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Read every X12 segment, including ISA/GS/GE/IEA envelopes, with positional elements, document/segment ordering, source offsets, and per-interchange delimiters. Envelope keys apply only to the current scope (NULL outside it). Accepts paths/globs, inline content, or bytes. Use this representation for COPY FROM/TO FORMAT 'x12.x12'. Order by document_index, segment_index before writing. Text round trips preserve element values, empty elements, and ISA padding, but normalize inter-segment whitespace. The reader is permissive; the writer requires complete, structurally valid ASCII X12. Shaped read_* projections cannot reconstruct an interchange.",
+        "vgi.doc_md": "## Complete X12 segments\n\nUse this reader to edit or inspect an entire interchange before COPY export. Unlike the transaction-only segments view, every ISA, GS, GE, and IEA row remains available.\n\n**Ordering.** Each invocation assigns a document_index to each resolved input and a document-wide segment_index to every row. Order by both when exporting. Keep a separate import identifier when appending several calls to one staging table.\n\n**Values and delimiters.** Positional elements retain empty strings, padding, composites, and repetitions as unsplit text. The row carries its element separator and segment terminator; ISA11 and ISA16 retain the other delimiters. A new ISA starts a new delimiter scope, including concatenated interchanges with different separators.\n\n**Envelope keys.** Keys are NULL outside their scope. A trailer carries the keys of the scope it closes. Source paths are NULL for inline content; byte offsets refer to the original document and become informational after edits.\n\n**Round trips.** The reader is permissive and materializes its input. COPY export checks complete ASCII envelopes and control numbers, with optional trailer-count recalculation. Inter-segment whitespace is normalized; binary payloads and EDIFACT writing are unsupported.",
+        "vgi.example_queries": "[{\"description\":\"Read all segments of an inline X12 interchange, including its envelopes.\",\"sql\":\"SELECT segment_index, segment_id, elements FROM x12.main.read_x12('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~CLM*ACCT1*500~SE*3*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"read_x12\",\"copy\",\"round trip\",\"segments\",\"envelopes\",\"delimiters\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"document_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based document ordinal within this invocation; distinguishes inline and repeated input paths.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"Zero-based segment ordinal across the whole document, including all envelopes. Order by document_index, segment_index before COPY TO.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier, including ISA, GS, ST, SE, GE, and IEA.\"},{\"name\":\"elements\",\"type\":\"VARCHAR[]\",\"description\":\"All positional element values, preserving empty values, padding, composites, and repetitions as unsplit text.\"},{\"name\":\"byte_offset\",\"type\":\"BIGINT\",\"description\":\"Start byte offset in the source document; informational after edits.\"},{\"name\":\"element_separator\",\"type\":\"VARCHAR\",\"description\":\"Element separator in force for this row's interchange.\"},{\"name\":\"segment_terminator\",\"type\":\"VARCHAR\",\"description\":\"Segment terminator in force for this row's interchange. Component and repetition separators remain in ISA16 and ISA11.\"}]",
+        "vgi.title": "Complete X12 Segments"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22741,
+      [
+        "SELECT segment_index, segment_id, elements FROM x12.main.read_x12('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~CLM*ACCT1*500~SE*3*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "segments",
+      null,
+      "table",
+      "Explode an X12 interchange into one row per segment (elements as a LIST)",
+      null,
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Explode ANSI ASC X12 EDI file(s) into one row per segment. The input is a file path/glob (e.g. '/data/*.edi') or inline content (auto-detected by the ISA/UNA/UNB prefix). Each row carries the four envelope keys (interchange_ctrl=ISA13, group_ctrl=GS06, transaction_ctrl=ST02, transaction_type=ST01) plus source_path, the 0-based segment_index within its ST..SE transaction, the raw segment_id, an elements list of the positional data-element values, and the byte_offset. The interchange's own delimiters are sniffed from its fixed-width ISA. Malformed input never aborts the query.",
+        "vgi.doc_md": "One row per X12 segment, with the positional element values as a list and the envelope keys carried down. Reads a file path/glob or inline content.",
+        "vgi.example_queries": "[{\"description\":\"Explode an inline 837 claim interchange into one row per segment.\",\"sql\":\"SELECT segment_index, segment_id, elements FROM x12.main.segments('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~SE*7*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"segments\",\"explode\",\"segment\",\"parse edi\",\"837\",\"835\",\"healthcare edi\",\"elements\",\"isa\",\"gs\",\"st\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"0-based ordinal of this segment within its ST..SE transaction (ST is 0).\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier (e.g. 'CLP', 'NM1', 'HL').\"},{\"name\":\"elements\",\"type\":\"VARCHAR[]\",\"description\":\"Positional data-element values of the segment (the values after the segment ID).\"},{\"name\":\"byte_offset\",\"type\":\"BIGINT\",\"description\":\"Start offset of the segment in the source document (debug/replay).\"}]",
+        "vgi.title": "X12 Segments"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22742,
+      [
+        "SELECT segment_index, segment_id, elements FROM x12.main.segments('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~NM1*85*2*BILLING CLINIC*****XX*1122334455~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~SE*7*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "segments_elements",
+      null,
+      "table",
+      "Explode an X12 interchange into one row per element (component/repetition split)",
+      null,
+      {
+        "vgi.category": "Segment & element explode",
+        "vgi.doc_llm": "Fully explode ANSI ASC X12 EDI file(s) into one row per element \u2014 the workhorse generic view. The single `input` argument is a file path/glob or inline content (auto-detected by the ISA/UNA/UNB magic prefix). Each row carries the four envelope keys plus source_path, the segment_index, raw segment_id, the 1-based element_index (CLP02 is element_index 2), a component_index (NULL unless the element is a composite split on the sub-element separator), a repetition_index (NULL unless the element repeats on the repetition separator), and the raw value. Delimiters are sniffed per interchange from the ISA. Filter with WHERE segment_id = 'CLM' to pull specific segments.",
+        "vgi.doc_md": "One row per X12 element, split into composite components and repetitions, with envelope keys carried down. The `input` is a file path/glob or inline content.",
+        "vgi.example_queries": "[{\"description\":\"Explode an inline 837 CLM segment into element/component rows (CLM05 is the composite '11:B:1').\",\"sql\":\"SELECT segment_id, element_index, component_index, value FROM x12.main.segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~SE*5*0001~GE*1*1~IEA*1*000000001~')\"}]",
+        "vgi.keywords": "[\"x12\",\"edi\",\"elements\",\"explode\",\"element\",\"component\",\"repetition\",\"segments_elements\",\"parse edi\",\"837\",\"835\",\"claim\",\"healthcare edi\",\"table function\"]",
+        "vgi.result_columns_schema": "[{\"name\":\"interchange_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ISA13 \u2014 interchange control number of the row's interchange.\"},{\"name\":\"group_ctrl\",\"type\":\"VARCHAR\",\"description\":\"GS06 \u2014 functional group control number of the row's group.\"},{\"name\":\"transaction_ctrl\",\"type\":\"VARCHAR\",\"description\":\"ST02 \u2014 transaction set control number of the row's transaction.\"},{\"name\":\"transaction_type\",\"type\":\"VARCHAR\",\"description\":\"ST01 \u2014 transaction set identifier ('835','837',\u2026); UNH02 message type for EDIFACT.\"},{\"name\":\"source_path\",\"type\":\"VARCHAR\",\"description\":\"The file the row came from; NULL for inline content.\"},{\"name\":\"segment_index\",\"type\":\"BIGINT\",\"description\":\"0-based ordinal of this element's segment within its ST..SE transaction.\"},{\"name\":\"segment_id\",\"type\":\"VARCHAR\",\"description\":\"Raw segment identifier (e.g. 'CLM', 'NM1').\"},{\"name\":\"element_index\",\"type\":\"INTEGER\",\"description\":\"1-based element position (so CLP02 is element_index = 2).\"},{\"name\":\"component_index\",\"type\":\"INTEGER\",\"description\":\"1-based sub-element position; NULL unless the element is a composite.\"},{\"name\":\"repetition_index\",\"type\":\"INTEGER\",\"description\":\"1-based repetition occurrence; NULL unless the element repeats.\"},{\"name\":\"value\",\"type\":\"VARCHAR\",\"description\":\"The raw element/component value (EDIFACT release char applied).\"}]",
+        "vgi.title": "X12 Segments & Elements"
+      },
+      null,
+      [
+        "input",
+        "mode"
+      ],
+      [
+        "ANY",
+        "VARCHAR"
+      ],
+      null,
+      null,
+      null,
+      true,
+      null,
+      22743,
+      [
+        "SELECT segment_id, element_index, component_index, value FROM x12.main.segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~CLM*ACCT777*500***11:B:1*Y~HI*ABK:Z1234~SV1*HC:99213*200*UN*1~SE*5*0001~GE*1*1~IEA*1*000000001~')"
+      ],
+      null,
+      []
+    ],
+    [
+      "x12",
+      "22594",
+      "main",
+      "transaction_type",
+      null,
+      "scalar",
+      "Detect the transaction type (first ST01, or EDIFACT UNH02 message type) of inline content",
+      null,
+      {
+        "vgi.category": "Interchange sniffers",
+        "vgi.doc_llm": "Detect the transaction set type of inline X12 or UN/EDIFACT content without fully parsing the body: returns the first X12 ST01 transaction set identifier ('835', '837', '270', '271', '850', '997', '999', \u2026) or, for an EDIFACT interchange, the UNH02 message type ('ORDERS', 'INVOIC', \u2026). Useful for routing / triage. Returns NULL when no transaction header is found or the content is unrecognized (never an error). Pass the content from a column, e.g. via read_text().",
+        "vgi.doc_md": "Detect the EDI transaction type of inline content \u2014 first X12 ST01 or EDIFACT UNH02 message type; NULL when none is found.",
+        "vgi.example_queries": "[{\"description\":\"Detect that an inline interchange carries an 835.\",\"sql\":\"SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type;\"}]",
+        "vgi.keywords": "[\"transaction type\",\"detect\",\"route\",\"triage\",\"st01\",\"unh\",\"message type\",\"x12\",\"edifact\",\"835\",\"837\",\"270\",\"271\",\"850\"]",
+        "vgi.title": "Detect EDI Transaction Type"
+      },
+      "VARCHAR",
+      [
+        "content"
+      ],
+      [
+        "VARCHAR"
+      ],
+      null,
+      null,
+      false,
+      true,
+      null,
+      22729,
+      [
+        "SELECT x12.main.transaction_type('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*1*0*P*:~GS*HP*S*R*20240101*1200*1*X*005010X221A1~ST*835*0001~SE*1*0001~GE*1*1~IEA*1*1~') AS tx_type;"
+      ],
+      "CONSISTENT",
+      []
+    ]
+  ]
+}

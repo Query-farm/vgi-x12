@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "repository": "Query-farm/vgi-x12",
+  "revision": "73f121502072815f789e4140ab7f18a0aa6dcc1c",
+  "captured_at": "2026-11-14T20:54:15.598584+00:00",
+  "default_schema": "main",
+  "scope": "all_public_functions_and_tables",
+  "complete": true,
+  "evidence": [
+    {
+      "path": "coverage/arguments-current.json",
+      "sha256": "08d3b1b32f87cc1fa836a094d5d5325f19d238a867059783a67ece9e8a338bd4",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/catalog-metadata-current.json",
+      "sha256": "4c9fd470b57d7af59be22e5f928c6063ddb04962c07a53a710a7c2053b1a0cf0",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/copy-formats-current.json",
+      "sha256": "a15a35898f5fa03abe763d943a24ac97680c9e347d61d0e2b3c78baf840d0ac0",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/edifact_envelope-columns-current.json",
+      "sha256": "34b841d37bec479ea472488d0b157eb9d52f2071b91ee6909bd90368379f09f8",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/edifact_segments-columns-current.json",
+      "sha256": "42e8d7f5999bcc290cfac4312c060ed2a99937044775ad1750f5592133c12320",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/envelope-columns-current.json",
+      "sha256": "4cde4663bdcd2279fe656c172427d0eb5676fb15bf6fdadc98c262db3875149a",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/functions-current.json",
+      "sha256": "f3cb3a1298ce1022f6ac33802f59ebe67a82efc0e73f12558bb05d956f3e062f",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_270-columns-current.json",
+      "sha256": "4512b97e7e3ac7c5f11e64f4fe5970c1744b6f4422aab67bab06610f5ecb52a5",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_271-columns-current.json",
+      "sha256": "58553f4d22cb0f1de981d9bca69506cee18bb85fdb6fe9f5290b306cd9aeeeb2",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_835-columns-current.json",
+      "sha256": "217edcd2b6e8e1764383ff3384653e75fcc595bc46437e0190590703de711681",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_837-columns-current.json",
+      "sha256": "0441ee1cbfa153d3b0345e5a94db3ec66b38039648cbfdd7884bb73740d061d6",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_850-columns-current.json",
+      "sha256": "1e933fc34b2e19186562a976e2d73fc3e323ab5cfdefab9b90301bc296ab175c",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_997-columns-current.json",
+      "sha256": "f8539d611756e5fdc10e5b31a36fd57ed682c27a7db15d328799ed260a03f1c6",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_999-columns-current.json",
+      "sha256": "2a310c361de1fedf74aa1a23264ede95624659844cca2bb994add7252e49b561",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/read_x12-columns-current.json",
+      "sha256": "bf09e5de15c2ec1c0520030b99f3d3173cd302e5ddc19a2aaa99db7ea1aac7d7",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/segments-columns-current.json",
+      "sha256": "877f5a5c748a0267b50414f07ee5970173e9e8052bc21cd7c681d8d3597ffd4a",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/segments_elements-columns-current.json",
+      "sha256": "08e988fd3307d743d8a8f77e61e2b143890dcc96fbe34171dc75adec78e99aae",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/tables-current.json",
+      "sha256": "90761cfa938aa2359c5958aa291833be2384e83bd91fbe6fe718d89dfc9085b6",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/view-columns-current.json",
+      "sha256": "f474108ab047dab0f57900b40d5884644fe2d18584d5d7e41b47856be2fed6a4",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/views-current.json",
+      "sha256": "a45eb37b90a9da5f4d02ecc15e3974ccb792b47e55ba67aaacc4be8c02883f48",
+      "description": "Complete worker-filtered runtime export, full output-column DESCRIBE or COPY format metadata"
+    },
+    {
+      "path": "coverage/source-compatibility.json",
+      "sha256": "8915fd7e906536680a45debab45c5942400ccd4168ee6c5acdb95b9b15cfe96d",
+      "description": "Reviewed metadata/example-only main diff and reused green source CI; authentication distinction"
+    }
+  ],
+  "objects": [
+    {
+      "schema": "main",
+      "name": "copy_x12",
+      "kind": "function",
+      "signatures": [
+        "copy_x12() -> COPY_HANDLER (read/write; registered format schema/options in copy-formats export; not directly SELECT-callable)",
+        "copy_x12(recalculate_counts BOOLEAN) -> COPY_HANDLER (read/write; registered format schema/options in copy-formats export; not directly SELECT-callable)"
+      ],
+      "authentication": "none",
+      "access": "read_write",
+      "access_notes": "Registered local-file COPY read/write handler; no write execution in these examples."
+    },
+    {
+      "schema": "main",
+      "name": "delimiters",
+      "kind": "function",
+      "signatures": [
+        "delimiters(content VARCHAR) -> STRUCT(element VARCHAR, segment VARCHAR, component VARCHAR, repetition VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "edifact_envelope",
+      "kind": "function",
+      "signatures": [
+        "edifact_envelope(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, syntax_id VARCHAR, syntax_version VARCHAR, sender_id VARCHAR, receiver_id VARCHAR, unb_date VARCHAR, unb_time VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, message_version VARCHAR, message_release VARCHAR, controlling_agency VARCHAR, segment_count BIGINT, unt_count_ok BOOLEAN, source_path VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "edifact_segments",
+      "kind": "function",
+      "signatures": [
+        "edifact_segments(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, segment_index BIGINT, segment_id VARCHAR, element_index INTEGER, component_index INTEGER, value VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "envelope",
+      "kind": "function",
+      "signatures": [
+        "envelope(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, sender_qual VARCHAR, sender_id VARCHAR, receiver_qual VARCHAR, receiver_id VARCHAR, isa_date VARCHAR, isa_time VARCHAR, isa_version VARCHAR, usage_indicator VARCHAR, group_ctrl VARCHAR, gs_functional_id VARCHAR, gs_app_sender VARCHAR, gs_app_receiver VARCHAR, gs_date VARCHAR, gs_version VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, st_impl_ref VARCHAR, segment_count BIGINT, se_count_ok BOOLEAN, ge_count_ok BOOLEAN, iea_count_ok BOOLEAN, se_ctrl_match BOOLEAN, ge_ctrl_match BOOLEAN, iea_ctrl_match BOOLEAN, source_path VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_270",
+      "kind": "function",
+      "signatures": [
+        "read_270(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, hl_id VARCHAR, hl_parent VARCHAR, hl_level_code VARCHAR, hl_child_code VARCHAR, entity_qualifier VARCHAR, entity_name VARCHAR, entity_id_qualifier VARCHAR, entity_id VARCHAR, trn_trace VARCHAR, eb_eligibility_code VARCHAR, eb_coverage_level VARCHAR, eb_service_type VARCHAR, eb_insurance_type VARCHAR, eb_plan_description VARCHAR, eb_time_qualifier VARCHAR, eb_benefit_amount VARCHAR, dtp_qualifier VARCHAR, dtp_date VARCHAR, aaa_reject_reason VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_271",
+      "kind": "function",
+      "signatures": [
+        "read_271(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, hl_id VARCHAR, hl_parent VARCHAR, hl_level_code VARCHAR, hl_child_code VARCHAR, entity_qualifier VARCHAR, entity_name VARCHAR, entity_id_qualifier VARCHAR, entity_id VARCHAR, trn_trace VARCHAR, eb_eligibility_code VARCHAR, eb_coverage_level VARCHAR, eb_service_type VARCHAR, eb_insurance_type VARCHAR, eb_plan_description VARCHAR, eb_time_qualifier VARCHAR, eb_benefit_amount VARCHAR, dtp_qualifier VARCHAR, dtp_date VARCHAR, aaa_reject_reason VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_835",
+      "kind": "function",
+      "signatures": [
+        "read_835(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, bpr_total_paid VARCHAR, bpr_credit_debit VARCHAR, bpr_payment_method VARCHAR, bpr_payment_date VARCHAR, trn_trace_number VARCHAR, trn_payer_id VARCHAR, payer_name VARCHAR, payee_name VARCHAR, payee_npi VARCHAR, clp_claim_id VARCHAR, clp_status_code VARCHAR, clp_total_charge VARCHAR, clp_total_paid VARCHAR, clp_patient_resp VARCHAR, clp_filing_code VARCHAR, clp_payer_claim_control VARCHAR, clp_facility_code VARCHAR, cas_group_code VARCHAR, cas_reason_code VARCHAR, cas_amount VARCHAR, svc_procedure VARCHAR, svc_charge VARCHAR, svc_paid VARCHAR, svc_units VARCHAR, ref_qualifier VARCHAR, ref_value VARCHAR, dtm_qualifier VARCHAR, dtm_date VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_837",
+      "kind": "function",
+      "signatures": [
+        "read_837(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, billing_provider_name VARCHAR, billing_provider_npi VARCHAR, subscriber_name VARCHAR, subscriber_id VARCHAR, patient_name VARCHAR, sbr_payer_responsibility VARCHAR, sbr_relationship VARCHAR, sbr_plan_name VARCHAR, clm_id VARCHAR, clm_total_charge VARCHAR, clm_place_of_service VARCHAR, clm_provider_signature VARCHAR, hi_diagnosis_qualifier VARCHAR, hi_diagnosis_code VARCHAR, sv1_procedure VARCHAR, sv1_charge VARCHAR, sv1_units VARCHAR, sv2_revenue_code VARCHAR, sv2_procedure VARCHAR, sv2_charge VARCHAR, dtp_qualifier VARCHAR, dtp_date VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_850",
+      "kind": "function",
+      "signatures": [
+        "read_850(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, beg_purpose_code VARCHAR, beg_po_type VARCHAR, beg_po_number VARCHAR, beg_date VARCHAR, n1_entity_code VARCHAR, n1_name VARCHAR, n1_id_qualifier VARCHAR, n1_id VARCHAR, per_contact_function VARCHAR, per_name VARCHAR, per_comm_qualifier VARCHAR, per_comm_number VARCHAR, po1_line_number VARCHAR, po1_quantity VARCHAR, po1_uom VARCHAR, po1_unit_price VARCHAR, po1_product_qualifier VARCHAR, po1_product_id VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_997",
+      "kind": "function",
+      "signatures": [
+        "read_997(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, ak1_functional_id VARCHAR, ak1_group_control VARCHAR, ak9_status VARCHAR, ak9_sets_included VARCHAR, ak9_sets_received VARCHAR, ak9_sets_accepted VARCHAR, ak2_transaction_set_id VARCHAR, ak2_transaction_control VARCHAR, ak5_status VARCHAR, ak3_segment_id VARCHAR, ak3_segment_position VARCHAR, ak3_error_code VARCHAR, ak4_element_position VARCHAR, ak4_error_code VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_999",
+      "kind": "function",
+      "signatures": [
+        "read_999(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, ak1_functional_id VARCHAR, ak1_group_control VARCHAR, ak9_status VARCHAR, ak9_sets_included VARCHAR, ak9_sets_received VARCHAR, ak9_sets_accepted VARCHAR, ak2_transaction_set_id VARCHAR, ak2_transaction_control VARCHAR, ik5_status VARCHAR, ik3_segment_id VARCHAR, ik3_segment_position VARCHAR, ik3_error_code VARCHAR, ik4_element_position VARCHAR, ik4_error_code VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "read_x12",
+      "kind": "function",
+      "signatures": [
+        "read_x12(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, document_index BIGINT, segment_index BIGINT, segment_id VARCHAR, elements VARCHAR[], byte_offset BIGINT, element_separator VARCHAR, segment_terminator VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "segments",
+      "kind": "function",
+      "signatures": [
+        "segments(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, segment_index BIGINT, segment_id VARCHAR, elements VARCHAR[], byte_offset BIGINT)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "segments_elements",
+      "kind": "function",
+      "signatures": [
+        "segments_elements(input ANY, mode VARCHAR) -> TABLE(interchange_ctrl VARCHAR, group_ctrl VARCHAR, transaction_ctrl VARCHAR, transaction_type VARCHAR, source_path VARCHAR, segment_index BIGINT, segment_id VARCHAR, element_index INTEGER, component_index INTEGER, repetition_index INTEGER, value VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "transaction_type",
+      "kind": "function",
+      "signatures": [
+        "transaction_type(content VARCHAR) -> VARCHAR"
+      ],
+      "authentication": "none",
+      "access": "read"
+    },
+    {
+      "schema": "main",
+      "name": "transaction_sets",
+      "kind": "table",
+      "signatures": [
+        "VIEW(transaction_set VARCHAR, family VARCHAR, shaped_function VARCHAR, summary VARCHAR)"
+      ],
+      "authentication": "none",
+      "access": "read"
+    }
+  ],
+  "runtime": "Haybarn2.0.0rc11",
+  "launch": "Existing source-built native binary; artifact SHA256 in source-compatibility.json",
+  "review_notes": "17 function rows form16 logical function names, plus1 public view=17 surfaces. Two copy_x12 overloads count once; handler is invoked through COPY, not SELECT, and stays in denominator with read/write access. Complete registrations/output columns reviewed. Path/content/byte input forms do not create extra surfaces. No auth/write exclusions. Initial static9candidate extraction missed shaped registry functions and COPY handler."
+}

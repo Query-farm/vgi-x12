@@ -1,0 +1,26 @@
+{
+  "release": "v0.5.0",
+  "release_commit": "87451108b80dbb69d86191e512917a207030dc96",
+  "current_revision": "73f121502072815f789e4140ab7f18a0aa6dcc1c",
+  "core_tree_unchanged": true,
+  "root_dependency_files_unchanged": true,
+  "review": "Current changes add composed SQL examples, agent tasks and descriptive metadata only. No parser, COPY serialization or output schema changes. Full source diff reviewed; actual exported signatures/output columns match.",
+  "source_ci": {
+    "revision": "73f121502072815f789e4140ab7f18a0aa6dcc1c",
+    "url": "https://github.com/Query-farm/vgi-x12/actions/runs/43580885430",
+    "conclusion": "success"
+  },
+  "current_catalog_launch": "Reused existing current-source binary from previous validated publication checkout; no rebuild and never used as notebook worker.",
+  "current_binary_sha256": "503468f2b86c3c93c185e2cda56a74de280136c5cc0f57af0acdd82b1536b671",
+  "previous_source_gates": {
+    "build_clippy_fmt_docs": "pass",
+    "unit_tests": 52,
+    "stdio_assertions": 217,
+    "http_assertions": 235,
+    "unix_assertions": 217,
+    "metadata": "100/100 L2 zero findings"
+  },
+  "runtime": "Haybarn2.0.0rc11",
+  "title_subtitle_source": "duckdb_databases tags in catalog-metadata.json",
+  "release_fetch": "Initial anonymous API request403(rate limit0); actual v0.5.0 cold download verified using authorized gh authentication only in test subprocess env. Token never written or printed. Subsequent anonymous ATTACH and read_850 query passed against verified worker cache. User-facing SQL contains no authentication setup."
+}
