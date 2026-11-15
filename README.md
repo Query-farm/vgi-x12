@@ -27,7 +27,7 @@ Every [GitHub release](https://github.com/Query-farm/vgi-x12/releases) ships a p
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-x12@v0.5.1');
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-x12@v0.5.2');
 
 -- Pull the elements of every CLM (claim) segment from an inline 837 claim interchange (pass a file path or
 -- glob such as '/data/claims/*.837' to read your own files).
@@ -38,14 +38,14 @@ SELECT segment_index, element_index, value FROM x12.main.segments_elements('ISA*
 SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text(['https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/claim_837.837', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/era_835.835', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/po_850.850', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/orders_edifact.edi']) ORDER BY filename;
 ```
 
-Prebuilt binaries cover macOS (Apple silicon), Linux (x86-64 and arm64). `github-auto://` needs an explicit release tag; change `@v0.5.1` to move to a newer release.
+Prebuilt binaries cover macOS (Apple silicon), Linux (x86-64 and arm64). `github-auto://` needs an explicit release tag; change `@v0.5.2` to move to a newer release.
 
 ### Other ways to run it
 
 - **Docker** (the image bundles the worker; needs a container runtime):
 
   ```sql
-  ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-x12:0.5.1');
+  ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-x12:0.5.2');
   ```
 
 - **Manual download.** Download the archive for your platform from the [releases page](https://github.com/Query-farm/vgi-x12/releases), verify it against its `.sha256` file (a cosign `.cosign.bundle` is published alongside), unpack it, and set `LOCATION` to the path of the extracted worker executable.

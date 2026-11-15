@@ -4,6 +4,11 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
+## 0.5.2
+
+- Docs link to upstream sources (vgi-lint VGI183): the catalog `vgi.doc_md` now
+  ends with a "Sources and references" section linking X12, its transaction-set catalog, the CMS HIPAA standards page and UN/EDIFACT.
+
 ## 0.5.1
 
 - Schema-level example queries show real output for any user (vgi-lint 2.7.0

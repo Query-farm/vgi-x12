@@ -101,7 +101,12 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                  worker-local paths. Order output by `document_index, segment_index`. The writer \
                  requires complete ASCII envelopes and checks counts and control numbers; \
                  `recalculate_counts true` updates trailer counts after edits. Formatting \
-                 whitespace is normalized. EDIFACT output and binary payloads are unsupported."
+                 whitespace is normalized. EDIFACT output and binary payloads are unsupported.\n\n\
+                 ## Sources and references\n\n\
+                 - [X12](https://x12.org/) — the ASC X12 standards body; licensed TR3 implementation guides come from here\n\
+                 - [X12 transaction sets](https://x12.org/products/transaction-sets) — the 835/837/850/270/271/997/999 catalog\n\
+                 - [HIPAA adopted standards (CMS)](https://www.cms.gov/priorities/key-initiatives/burden-reduction/administrative-simplification/hipaa/adopted-standards-operating-rules) — which X12 transactions HIPAA mandates\n\
+                 - [UN/EDIFACT](https://en.wikipedia.org/wiki/EDIFACT)"
                     .to_string(),
             ),
             (
