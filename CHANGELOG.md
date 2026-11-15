@@ -8,6 +8,8 @@ the `[workspace.package]` version in `Cargo.toml`.
 
 - Docs link to upstream sources (vgi-lint VGI183): the catalog `vgi.doc_md` now
   ends with a "Sources and references" section linking X12, its transaction-set catalog, the CMS HIPAA standards page and UN/EDIFACT.
+- The X12 COPY format's example now exports an inline 997 interchange through
+  `FORMAT 'x12.x12'` instead of only querying DuckDB's `vgi_copy_formats()` catalog.
 
 ## 0.5.1
 

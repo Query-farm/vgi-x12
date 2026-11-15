@@ -33,7 +33,7 @@ fn metadata() -> FunctionMetadata {
         counts without changing control numbers. Use read_x12 for ordinary SELECT queries.";
     let md = "## X12 COPY format\n\n\
         The registered handler is invoked by DuckDB's COPY machinery. It cannot be called \
-        directly as a table function. Discover the alias-scoped format using the example query.\n\n\
+        directly as a table function; name it as `FORMAT '<alias>.x12'` (`'x12.x12'` when attached as `x12`).\n\n\
         **Import.** Create the destination table from the schema of `read_x12(input)` with zero \
         rows, then import a worker-local file or glob. Column names, order, and types must match. \
         Reads retain malformed segments for inspection and materialize the input in memory.\n\n\
@@ -48,9 +48,14 @@ fn metadata() -> FunctionMetadata {
         empty file. This is structural validation; transaction-specific content rules remain \
         outside scope. Formatting whitespace is normalized. EDIFACT and binary payloads are \
         unsupported. See the repository README for the complete edit-and-export workflow.";
+    // Export an inline 997 interchange through the format, in document and
+    // segment order; `read_x12('acknowledgment.x12')` reads the file back.
+    let interchange = crate::meta::example_interchange("997", "AK1*PO*1~AK9*A*1*1*1~");
     let example = vgi::FunctionExample {
-        description: "Discover the X12 COPY format, supported directions, ordering, and options.".into(),
-        sql: "SELECT DISTINCT format_name, direction, ordered, option_name FROM vgi_copy_formats() WHERE handler = 'copy_x12' ORDER BY format_name, option_name;".into(),
+        description: "Export an X12 interchange's segment rows to a file through the X12 COPY format, in document and segment order.".into(),
+        sql: format!(
+            "COPY (SELECT * FROM x12.main.read_x12('{interchange}') ORDER BY document_index, segment_index) TO 'acknowledgment.x12' (FORMAT 'x12.x12');"
+        ),
         expected_output: None,
     };
     let mut tags = crate::meta::object_tags(
