@@ -27,23 +27,25 @@ Every [GitHub release](https://github.com/Query-farm/vgi-x12/releases) ships a p
 INSTALL vgi FROM community;
 LOAD vgi;
 
-ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-x12@v0.5.0');
+ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-x12@v0.5.1');
 
--- Pull the elements of every CLM (claim) segment from a folder of 837 claim files.
-SELECT source_path, segment_index, element_index, value FROM x12.main.segments_elements('/data/claims/*.837') WHERE segment_id = 'CLM';
+-- Pull the elements of every CLM (claim) segment from an inline 837 claim interchange (pass a file path or
+-- glob such as '/data/claims/*.837' to read your own files).
+SELECT segment_index, element_index, value FROM x12.main.segments_elements('ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*P*:~GS*XX*SEND*RECV*20240101*1200*1*X*005010~ST*837*0001~BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~SV1*HC:99213*200*UN*1~CLM*ACCT778*1000***11:B:1*Y~SV1*HC:99214*1000*UN*1~SE*7*0001~GE*1*1~IEA*1*000000001~') WHERE segment_id = 'CLM';
 
--- Flag interchanges whose SE segment count fails to validate across an inbound folder.
-SELECT source_path, interchange_ctrl, transaction_type, se_count_ok FROM x12.main.envelope('/data/inbound/*.edi') WHERE se_count_ok IS DISTINCT FROM TRUE;
+-- Classify sample EDI files (committed in this repo, pinned to a release tag) by transaction set type for
+-- routing.
+SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text(['https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/claim_837.837', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/era_835.835', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/po_850.850', 'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/orders_edifact.edi']) ORDER BY filename;
 ```
 
-Prebuilt binaries cover macOS (Apple silicon), Linux (x86-64 and arm64). `github-auto://` needs an explicit release tag; change `@v0.5.0` to move to a newer release.
+Prebuilt binaries cover macOS (Apple silicon), Linux (x86-64 and arm64). `github-auto://` needs an explicit release tag; change `@v0.5.1` to move to a newer release.
 
 ### Other ways to run it
 
 - **Docker** (the image bundles the worker; needs a container runtime):
 
   ```sql
-  ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-x12:0.5.0');
+  ATTACH 'x12' AS x12 (TYPE vgi, LOCATION 'docker://ghcr.io/query-farm/vgi-x12:0.5.1');
   ```
 
 - **Manual download.** Download the archive for your platform from the [releases page](https://github.com/Query-farm/vgi-x12/releases), verify it against its `.sha256` file (a cosign `.cosign.bundle` is published alongside), unpack it, and set `LOCATION` to the path of the extracted worker executable.
@@ -62,6 +64,9 @@ envelope keys (`interchange_ctrl` = ISA13, `group_ctrl` = GS06,
 `transaction_ctrl` = ST02, `transaction_type` = ST01, `source_path`).
 
 ```sql
+-- Examples 1-3, 5 and 7 read your own files by path or glob ('/data/...' is a
+-- placeholder for your folder); 4 and 6 run as-is.
+
 -- 1. Fully generic: one row per element, envelope keys carried down
 SELECT interchange_ctrl, group_ctrl, transaction_ctrl, transaction_type,
        segment_index, segment_id, element_index, value
@@ -82,9 +87,11 @@ FROM x12.read_835('/data/era/*.835')
 WHERE CAST(clp_total_paid AS DECIMAL(12, 2)) < CAST(clp_total_charge AS DECIMAL(12, 2));
 
 -- 4. Sniff just the delimiters / type of inline content (scalars).
---    `read_text` is a DuckDB TABLE function, so it supplies the `content` column:
-SELECT x12.delimiters(content), x12.transaction_type(content)
-FROM read_text('/data/inbound/*.edi');
+--    `read_text` is a DuckDB TABLE function, so it supplies the `content` column
+--    (here sample files committed in this repo, pinned to a release tag):
+SELECT filename, x12.delimiters(content), x12.transaction_type(content)
+FROM read_text(['https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/claim_837.837',
+                'https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data/era_835.835']);
 
 -- 5. EDIFACT interchange (UNA/UNB/UNH) explode
 SELECT * FROM x12.edifact_segments('/data/orders/*.edi');

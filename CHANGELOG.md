@@ -4,8 +4,16 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
-## Unreleased
+## 0.5.1
 
+- Schema-level example queries show real output for any user (vgi-lint 2.7.0
+  VGI516 / VGI913). The five starters read placeholder folders such as
+  `'/data/claims/*.837'` and `'/data/inbound/*.edi'`, which exist on nobody's
+  machine; `segments_elements`, `envelope`, `read_835` and `edifact_segments`
+  now parse inline interchanges (the `envelope` one carries a deliberately
+  wrong SE01 so the validity filter returns a row), and the `transaction_type`
+  classifier reads the committed `data/` samples over HTTPS pinned to `v0.5.0`.
+  The README quick start and `read_text` example follow suit.
 - Add composed example queries that combine the worker's objects:
   `transaction_type` + the `transaction_sets` view (route an inbox),
   `envelope` + `read_997` (acknowledgment reconciliation), and `read_837` +

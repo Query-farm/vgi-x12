@@ -202,33 +202,7 @@ fn catalog_metadata(name: &str) -> CatalogModel {
                     // composed example (defined once in `composed.rs`).
                     crate::meta::example_queries_tag(
                         &[
-                            vec![
-                            vgi::FunctionExample {
-                                description: "Pull the elements of every CLM (claim) segment from a folder of 837 claim files.".to_string(),
-                                sql: "SELECT source_path, segment_index, element_index, value FROM x12.main.segments_elements('/data/claims/*.837') WHERE segment_id = 'CLM';".to_string(),
-                                expected_output: None,
-                            },
-                            vgi::FunctionExample {
-                                description: "Flag interchanges whose SE segment count fails to validate across an inbound folder.".to_string(),
-                                sql: "SELECT source_path, interchange_ctrl, transaction_type, se_count_ok FROM x12.main.envelope('/data/inbound/*.edi') WHERE se_count_ok IS DISTINCT FROM TRUE;".to_string(),
-                                expected_output: None,
-                            },
-                            vgi::FunctionExample {
-                                description: "Extract claim id, total paid, and payer from a folder of 835 remittance files.".to_string(),
-                                sql: "SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('/data/era/*.835');".to_string(),
-                                expected_output: None,
-                            },
-                            vgi::FunctionExample {
-                                description: "Classify inbound files by transaction set type for routing.".to_string(),
-                                sql: "SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text('/data/inbound/*.edi');".to_string(),
-                                expected_output: None,
-                            },
-                            vgi::FunctionExample {
-                                description: "Count exploded EDIFACT elements per message type across an orders folder.".to_string(),
-                                sql: "SELECT transaction_type, count(*) AS n_elements FROM x12.main.edifact_segments('/data/orders/*.edi') GROUP BY transaction_type;".to_string(),
-                                expected_output: None,
-                            },
-                            ],
+                            schema_starter_examples(),
                             crate::composed::all(),
                         ]
                         .concat(),
@@ -241,6 +215,64 @@ fn catalog_metadata(name: &str) -> CatalogModel {
         }],
         ..Default::default()
     }
+}
+
+/// The schema-level starter examples. Each one parses inline content or reads
+/// sample files committed in this repo over HTTPS (pinned to a release tag), so
+/// it returns rows for any user: a file path or glob such as
+/// `'/data/claims/*.837'` is read from the worker's local filesystem and only
+/// exists on the caller's machine.
+fn schema_starter_examples() -> Vec<vgi::FunctionExample> {
+    const SAMPLES: &str = "https://raw.githubusercontent.com/Query-farm/vgi-x12/v0.5.0/data";
+    let claims = crate::meta::example_interchange(
+        "837",
+        "BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~\
+         SV1*HC:99213*200*UN*1~CLM*ACCT778*1000***11:B:1*Y~SV1*HC:99214*1000*UN*1~",
+    );
+    // SE01 declares 9 segments but the set has 4, so se_count_ok is FALSE.
+    let miscounted = crate::meta::example_interchange(
+        "837",
+        "BHT*0019*00*REF01*20240101*1200*CH~CLM*ACCT777*500***11:B:1*Y~",
+    )
+    .replace("SE*4*0001~", "SE*9*0001~");
+    let remittance = crate::meta::example_interchange(
+        "835",
+        "BPR*I*1500*C*ACH~TRN*1*TRACE0001*1512345678~\
+         NM1*PR*2*ACME HEALTH PLAN*****PI*PAYER001~\
+         NM1*PE*2*WELLNESS CLINIC LLC*****XX*1999999999~\
+         CLP*PCN1001*1*500*400*100*MC*CCN0001*11~CAS*CO*45*100~\
+         CLP*PCN1002*4*1000*0*0*MC*CCN0002*11~",
+    );
+    let example = |description: &str, sql: String| vgi::FunctionExample {
+        description: description.to_string(),
+        sql,
+        expected_output: None,
+    };
+    vec![
+        example(
+            "Pull the elements of every CLM (claim) segment from an inline 837 claim interchange (pass a file path or glob such as '/data/claims/*.837' to read your own files).",
+            format!("SELECT segment_index, element_index, value FROM x12.main.segments_elements('{claims}') WHERE segment_id = 'CLM';"),
+        ),
+        example(
+            "Flag transactions whose SE segment count does not validate: this inline 837 declares 9 segments in SE01 but carries 4.",
+            format!("SELECT interchange_ctrl, transaction_type, transaction_ctrl, segment_count, se_count_ok FROM x12.main.envelope('{miscounted}') WHERE se_count_ok IS DISTINCT FROM TRUE;"),
+        ),
+        example(
+            "Extract claim id, total paid, and payer from an inline 835 remittance interchange.",
+            format!("SELECT clp_claim_id, clp_total_paid, payer_name FROM x12.main.read_835('{remittance}');"),
+        ),
+        example(
+            "Classify sample EDI files (committed in this repo, pinned to a release tag) by transaction set type for routing.",
+            format!("SELECT filename, x12.main.transaction_type(content) AS tx_type FROM read_text(['{SAMPLES}/claim_837.837', '{SAMPLES}/era_835.835', '{SAMPLES}/po_850.850', '{SAMPLES}/orders_edifact.edi']) ORDER BY filename;"),
+        ),
+        example(
+            "Count exploded EDIFACT elements per message type in an inline ORDERS interchange.",
+            format!(
+                "SELECT transaction_type, count(*) AS n_elements FROM x12.main.edifact_segments('{}') GROUP BY transaction_type;",
+                crate::meta::EXAMPLE_EDIFACT.replace('\'', "''")
+            ),
+        ),
+    ]
 }
 
 /// A zero-argument, browsable **reference** view (VGI146) that maps each X12
