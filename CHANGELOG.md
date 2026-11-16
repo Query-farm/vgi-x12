@@ -4,6 +4,12 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
+## 0.5.3 (2026-11-16)
+
+- VGI Rust SDK `vgi` 0.51.0 → 0.51.1 (`vgi-rpc` stays 0.32.4).
+- SQL tests now run through the starter's `ci/run-integration.sh` over stdio, launch and http; `make check` runs everything CI runs.
+- CI image test installs the pinned `haybarn-unittest`; new `make lint-explain` metadata gate (vgi-lint at fail-on=info).
+
 ## 0.5.2
 
 - Docs link to upstream sources (vgi-lint VGI183): the catalog `vgi.doc_md` now
