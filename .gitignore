@@ -8,3 +8,4 @@
 
 # Claude Code session/worktree scratch (agent worktrees, local settings)
 /.claude
+/.tools/

@@ -1,53 +1,50 @@
-# vgi-x12 worker — dev, test, and lint targets.
-#
-# Usage:
-#   make test         # cargo unit/fixture tests + SQL E2E (all transports)
-#   make test-unit    # cargo test --workspace (pure-Rust + Arrow-boundary tests)
-#   make test-sql     # build the release worker, run the DuckDB sqllogictest
-#                     #   suite over every transport (subprocess, http, unix)
-#   make test-sql-subprocess / test-sql-http / test-sql-unix   # one transport
-#   make lint         # clippy (deny warnings) + rustfmt --check
-#   make vgi-lint     # metadata-quality lint at fail-on=info (uvx)
-#   make fmt          # rustfmt the workspace
-#
-# The SQL E2E suite drives the compiled worker through DuckDB via
-# `haybarn-unittest` (install with: `uv tool install --prerelease allow 'haybarn-unittest>=2.0.0rc11,<2.1'`).
+# vgi-x12 worker — common tasks. `make help` lists them.
+# Requires Rust (rustup) and uv (https://docs.astral.sh/uv/).
 
-WORKER         ?= $(CURDIR)/target/release/x12-worker
-SQL_RUNNER     ?= haybarn-unittest
+HAYBARN_VERSION  ?= 2.0.0rc11
+BIN              := x12-worker
+WORKER           := $(CURDIR)/target/release/$(BIN)
+TOOLS            := $(CURDIR)/.tools
+HAYBARN_UNITTEST := $(TOOLS)/bin/haybarn-unittest
+# The SQL suite runs over each of these (ci/run-integration.sh).
+TRANSPORTS       ?= stdio launch http
 
-.PHONY: test test-unit test-sql test-sql-subprocess test-sql-http test-sql-unix lint vgi-lint fmt build clean
+.DEFAULT_GOAL := help
+.PHONY: help build tools fmt lint test-unit test-sql test vgi-lint check clean
 
-# Full local gate: everything CI runs.
-test: test-unit test-sql
+help: ## List the targets
+	@awk 'BEGIN{FS=":.*## "} /^[a-zA-Z_-]+:.*## /{printf "  %-10s %s\n",$$1,$$2}' $(MAKEFILE_LIST)
 
-test-unit:
-	cargo test --workspace --all-features
+build: ## Build the worker (release)
+	cargo build --locked --release --bin $(BIN)
 
-test-sql: test-sql-subprocess test-sql-http test-sql-unix
+tools: ## Install the pinned SQL test runner into .tools
+	@test -x $(HAYBARN_UNITTEST) || { uv venv -q $(TOOLS) && uv pip install -q -p $(TOOLS) haybarn-unittest==$(HAYBARN_VERSION); }
 
-test-sql-subprocess: build
-	HAYBARN_UNITTEST="$(SQL_RUNNER)" WORKER_BIN="$(WORKER)" TRANSPORT=subprocess ci/run-integration.sh
-
-test-sql-http: build
-	HAYBARN_UNITTEST="$(SQL_RUNNER)" WORKER_BIN="$(WORKER)" TRANSPORT=http ci/run-integration.sh
-
-test-sql-unix: build
-	HAYBARN_UNITTEST="$(SQL_RUNNER)" WORKER_BIN="$(WORKER)" TRANSPORT=unix ci/run-integration.sh
-
-lint:
-	cargo clippy --all-targets --all-features -- -D warnings
-	cargo fmt --all -- --check
-
-# Metadata-quality gate (same rule set CI runs via Query-farm/vgi-lint-check).
-vgi-lint: build
-	uvx --prerelease allow --from 'vgi-lint-check>=2.0.1' vgi-lint lint "$(WORKER)" --fail-on info
-
-fmt:
+fmt: ## Format the code
 	cargo fmt --all
 
-build:
-	cargo build --release --bin x12-worker
+lint: ## Static checks: rustfmt, clippy, rustdoc
+	cargo fmt --all -- --check
+	cargo clippy --all-targets --all-features -- -D warnings
+	RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --workspace
 
-clean:
+test-unit: ## Unit tests (cargo test)
+	cargo test --workspace --all-features
+
+test-sql: build tools ## SQL tests through DuckDB over stdio, launch and http (TRANSPORTS="stdio")
+	@set -e; for t in $(TRANSPORTS); do \
+	  echo "== test/sql over $$t"; \
+	  WORKER="$(WORKER)" HAYBARN_UNITTEST="$(HAYBARN_UNITTEST)" TRANSPORT=$$t ci/run-integration.sh; \
+	done
+
+test: test-unit test-sql ## Unit + SQL tests
+
+vgi-lint: build ## Metadata quality gate (vgi-lint at fail-on=info, as in CI)
+	uvx --prerelease=allow --from 'vgi-lint-check>=2,<3' vgi-lint lint "$(WORKER)" --fail-on info
+
+check: lint test-unit test-sql vgi-lint ## Everything CI runs. Done = this passes.
+
+clean: ## Remove build outputs and tool caches
 	cargo clean
+	rm -rf .tools
