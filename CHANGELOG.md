@@ -4,6 +4,11 @@ All notable changes to the `vgi-x12` worker are documented here. The format is
 loosely based on [Keep a Changelog](https://keepachangelog.com/); versions track
 the `[workspace.package]` version in `Cargo.toml`.
 
+## 0.6.0 (2026-11-25)
+
+- VGI protocol 3.4: `vgi` 0.53.2, `vgi-rpc` 0.33.1 (Orchard hosted mode; `blob-vendor` on the native build). Requires the 3.4 community `vgi` extension (haybarn 2.0.1).
+- SQL tests run on haybarn-unittest 2.0.1rc3. Dockerfile HEALTHCHECK probes `HEAD /health` (hosted mode answers anonymous GET with 401).
+
 ## 0.5.3 (2026-11-16)
 
 - VGI Rust SDK `vgi` 0.51.0 → 0.51.1 (`vgi-rpc` stays 0.32.4).
@@ -41,7 +46,7 @@ the `[workspace.package]` version in `Cargo.toml`.
 
 ## 0.5.0 — 2026-11-12
 
-- Retain VGI protocol 3.3 compatibility and use filesystem-backed shared storage
+- Retain VGI protocol 3.4 compatibility and use filesystem-backed shared storage
   for COPY shards without a bundled SQLite dependency.
 
 - Add `read_x12(input)`, a complete segment representation including ISA/GS/GE/IEA,

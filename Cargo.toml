@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/x12-core", "crates/x12-worker"]
 
 [workspace.package]
-version = "0.5.3"
+version = "0.6.0"
 edition = "2021"
 rust-version = "1.97"
 license = "MIT"
@@ -17,8 +17,8 @@ repository = "https://github.com/Query-farm/vgi-x12"
 # Default features minus `sqlite`: COPY shards use the SDK filesystem-backed
 # shared storage, so SQLite is unnecessary. Dropping it removes
 # the bundled C SQLite (libsqlite3-sys, RUSTSEC-2026-0459) from the tree.
-vgi = { version = "0.51.1", default-features = false, features = ["transport-http", "catalog-publication"] }
-vgi-rpc = { version = "0.32.4", default-features = false, features = ["macros", "http"] }
+vgi = { version = "0.53.2", default-features = false, features = ["transport-http", "blob-vendor", "catalog-publication"] }
+vgi-rpc = { version = "0.33.1", default-features = false, features = ["macros", "http"] }
 arrow-array = "59.2"
 arrow-buffer = "59.2"
 arrow-schema = "59.2"
